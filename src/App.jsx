@@ -7,6 +7,10 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('bracket');
   const [copied, setCopied] = useState(false);
 
+  // Roster Search & Filter State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+
   // Fetch live scores from Google Sheet CSV
   useEffect(() => {
     if (!tournamentData.googleSheetCsvUrl) return;
@@ -39,6 +43,22 @@ export default function App() {
   };
 
   const getFighter = (id) => tournamentData.fighters.find((f) => f.id === id);
+
+  // Filter combatants based on search query and selected status tab
+  const filteredFighters = tournamentData.fighters.filter((f) => {
+    const query = searchQuery.toLowerCase();
+    const matchesQuery =
+      f.name.toLowerCase().includes(query) ||
+      f.bio.toLowerCase().includes(query) ||
+      f.attributes.some((attr) => attr.toLowerCase().includes(query));
+
+    const matchesStatus =
+      statusFilter === 'ALL' ||
+      (statusFilter === 'Main Bracket' && f.status === 'Main Bracket') ||
+      (statusFilter === 'Bench' && f.status !== 'Main Bracket');
+
+    return matchesQuery && matchesStatus;
+  });
 
   return (
     <div className="min-h-screen text-slate-100 font-sans pb-0 flex flex-col justify-between">
@@ -194,47 +214,108 @@ export default function App() {
           )}
 
           {activeTab === 'roster' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {tournamentData.fighters.map((f) => (
-                <div
-                  key={f.id}
-                  className={`bg-slate-900/90 border rounded-xl p-4 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 ${
-                    f.status === 'Main Bracket'
-                      ? 'border-purple-800/50 hover:border-orange-500/50 hover:glow-orange'
-                      : 'border-slate-800/60 hover:border-purple-600/40 opacity-80 hover:opacity-100'
-                  }`}
-                >
-                  <div>
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="text-3xl">{f.image}</span>
-                      <span
-                        className={`text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full ${
-                          f.status === 'Main Bracket'
-                            ? 'bg-orange-950 text-orange-400 border border-orange-500/30'
-                            : 'bg-purple-950 text-purple-300 border border-purple-500/30'
-                        }`}
-                      >
-                        {f.status}
-                      </span>
-                    </div>
-                    <h3 className="font-bold text-base text-slate-100 mb-1">
-                      {f.seed && <span className="text-orange-400 mr-1.5">#{f.seed}</span>}
-                      {f.name}
-                    </h3>
-                    <p className="text-xs text-slate-400 leading-relaxed mb-3">{f.bio}</p>
-                  </div>
-                  <div className="flex flex-wrap gap-1 mt-auto">
-                    {f.attributes.map((attr, idx) => (
-                      <span
-                        key={idx}
-                        className="bg-purple-950/60 text-purple-300 border border-purple-800/40 text-[10px] px-2 py-0.5 rounded-md font-medium"
-                      >
-                        {attr}
-                      </span>
-                    ))}
-                  </div>
+            <div>
+              {/* Search & Status Filter Controls */}
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6 bg-slate-900/80 p-3.5 rounded-2xl border border-purple-900/40 shadow-lg">
+                <div className="relative w-full sm:w-72">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 text-xs">🔍</span>
+                  <input
+                    type="text"
+                    placeholder="Search fighters or superpowers..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-slate-950/90 border border-purple-900/50 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500/80 w-full transition-colors"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-500 hover:text-slate-300 text-xs"
+                    >
+                      ✕
+                    </button>
+                  )}
                 </div>
-              ))}
+
+                <div className="flex space-x-1.5 text-xs w-full sm:w-auto justify-stretch sm:justify-end">
+                  {[
+                    { id: 'ALL', label: 'All Combatants' },
+                    { id: 'Main Bracket', label: 'Main Bracket' },
+                    { id: 'Bench', label: 'Alternate Bench' },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setStatusFilter(tab.id)}
+                      className={`flex-1 sm:flex-none px-3 py-2 rounded-xl font-semibold transition-all text-center ${
+                        statusFilter === tab.id
+                          ? 'bg-purple-900/80 text-orange-400 border border-orange-500/40 glow-orange'
+                          : 'bg-slate-950/60 text-slate-400 hover:text-purple-300 border border-purple-900/20'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Roster Grid */}
+              {filteredFighters.length === 0 ? (
+                <div className="text-center py-16 bg-slate-900/40 rounded-2xl border border-purple-900/20">
+                  <span className="text-4xl block mb-2">👻</span>
+                  <p className="text-purple-300/80 font-medium text-sm">No fighters match your search filters.</p>
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setStatusFilter('ALL');
+                    }}
+                    className="mt-3 text-xs text-orange-400 underline hover:text-orange-300 font-semibold"
+                  >
+                    Reset filters
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {filteredFighters.map((f) => (
+                    <div
+                      key={f.id}
+                      className={`bg-slate-900/90 border rounded-xl p-4 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 ${
+                        f.status === 'Main Bracket'
+                          ? 'border-purple-800/50 hover:border-orange-500/50 hover:glow-orange'
+                          : 'border-slate-800/60 hover:border-purple-600/40 opacity-80 hover:opacity-100'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="text-3xl">{f.image}</span>
+                          <span
+                            className={`text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full ${
+                              f.status === 'Main Bracket'
+                                ? 'bg-orange-950 text-orange-400 border border-orange-500/30'
+                                : 'bg-purple-950 text-purple-300 border border-purple-500/30'
+                            }`}
+                          >
+                            {f.status}
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-base text-slate-100 mb-1">
+                          {f.seed && <span className="text-orange-400 mr-1.5">#{f.seed}</span>}
+                          {f.name}
+                        </h3>
+                        <p className="text-xs text-slate-400 leading-relaxed mb-3">{f.bio}</p>
+                      </div>
+                      <div className="flex flex-wrap gap-1 mt-auto">
+                        {f.attributes.map((attr, idx) => (
+                          <span
+                            key={idx}
+                            className="bg-purple-950/60 text-purple-300 border border-purple-800/40 text-[10px] px-2 py-0.5 rounded-md font-medium"
+                          >
+                            {attr}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </main>
