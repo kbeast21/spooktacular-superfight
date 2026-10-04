@@ -90,7 +90,7 @@ export default function App() {
                     : 'text-slate-400 hover:text-purple-300'
                 }`}
               >
-                <span>⚔️</span>
+                <span>⚔️️</span>
                 <span>Matchups</span>
               </button>
               <button
@@ -175,9 +175,6 @@ export default function App() {
                   const fB = getFighter(match.fighterBId);
                   const scoreA = liveScores[match.id]?.votesA ?? match.votesA ?? 0;
                   const scoreB = liveScores[match.id]?.votesB ?? match.votesB ?? 0;
-                  const totalVotes = scoreA + scoreB;
-                  const pctA = totalVotes > 0 ? Math.round((scoreA / totalVotes) * 100) : 50;
-                  const pctB = totalVotes > 0 ? Math.round((scoreB / totalVotes) * 100) : 50;
 
                   return (
                     /* DISTINCT OUTER MATCHUP BOX */
@@ -187,11 +184,9 @@ export default function App() {
                     >
                       {/* CARD HEADER BAR */}
                       <div className="bg-slate-950/90 px-5 py-3 border-b-2 border-purple-900/60 flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <span className="text-orange-400 text-xs font-black tracking-wider uppercase">
-                            {match.matchTitle}
-                          </span>
-                        </div>
+                        <span className="text-orange-400 text-xs font-black tracking-wider uppercase">
+                          {match.matchTitle}
+                        </span>
                         <span className="bg-purple-950/90 text-purple-300 border border-purple-800/60 text-[11px] font-mono px-2.5 py-0.5 rounded-lg">
                           📍 {match.location}
                         </span>
@@ -200,7 +195,7 @@ export default function App() {
                       {/* CARD BODY CONTENT */}
                       <div className="p-5 space-y-3">
                         {/* Fighter A Panel */}
-                        <div className={`p-3.5 rounded-2xl border-2 transition-all ${
+                        <div className={`p-4 rounded-2xl border-2 transition-all ${
                           scoreA > scoreB 
                             ? 'bg-purple-950/50 border-orange-500/80 shadow-md' 
                             : 'bg-slate-950/80 border-purple-900/40'
@@ -220,28 +215,27 @@ export default function App() {
                                 </p>
                               </div>
                             </div>
-                            <div className="text-right pl-3">
-                              <span className="text-xl font-black font-mono text-amber-400 block leading-none">
+                            {/* Raw Vote Counter Badge */}
+                            <div className="bg-slate-900 px-3 py-1.5 rounded-xl border border-purple-800/60 text-center min-w-[70px] shadow-inner">
+                              <span className="text-lg font-black font-mono text-amber-400 block leading-none">
                                 {scoreA}
                               </span>
-                              <span className="text-[10px] text-slate-500 font-mono font-semibold">{pctA}%</span>
+                              <span className="text-[9px] font-bold tracking-widest text-purple-400 uppercase">
+                                {scoreA === 1 ? 'Vote' : 'Votes'}
+                              </span>
                             </div>
                           </div>
                         </div>
 
-                        {/* VS Divider & Bar */}
-                        <div className="relative my-2">
-                          <div className="h-2 w-full bg-slate-950 rounded-full overflow-hidden flex border border-purple-900/50">
-                            <div style={{ width: `${pctA}%` }} className="bg-gradient-to-r from-orange-500 to-amber-400 h-full transition-all duration-500"></div>
-                            <div style={{ width: `${pctB}%` }} className="bg-gradient-to-r from-purple-600 to-indigo-500 h-full transition-all duration-500"></div>
-                          </div>
-                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-950 px-2.5 py-0.5 text-[9px] font-black text-purple-400 border border-purple-900/80 rounded-full uppercase tracking-widest shadow-md">
-                            VS
-                          </div>
+                        {/* VS Divider */}
+                        <div className="text-center my-1 flex items-center justify-center gap-3">
+                          <div className="h-[1px] bg-purple-900/50 flex-1"></div>
+                          <span className="text-[10px] font-black tracking-widest text-purple-400/80 uppercase">VS</span>
+                          <div className="h-[1px] bg-purple-900/50 flex-1"></div>
                         </div>
 
                         {/* Fighter B Panel */}
-                        <div className={`p-3.5 rounded-2xl border-2 transition-all ${
+                        <div className={`p-4 rounded-2xl border-2 transition-all ${
                           scoreB > scoreA 
                             ? 'bg-purple-950/50 border-orange-500/80 shadow-md' 
                             : 'bg-slate-950/80 border-purple-900/40'
@@ -261,11 +255,14 @@ export default function App() {
                                 </p>
                               </div>
                             </div>
-                            <div className="text-right pl-3">
-                              <span className="text-xl font-black font-mono text-amber-400 block leading-none">
+                            {/* Raw Vote Counter Badge */}
+                            <div className="bg-slate-900 px-3 py-1.5 rounded-xl border border-purple-800/60 text-center min-w-[70px] shadow-inner">
+                              <span className="text-lg font-black font-mono text-amber-400 block leading-none">
                                 {scoreB}
                               </span>
-                              <span className="text-[10px] text-slate-500 font-mono font-semibold">{pctB}%</span>
+                              <span className="text-[9px] font-bold tracking-widest text-purple-400 uppercase">
+                                {scoreB === 1 ? 'Vote' : 'Votes'}
+                              </span>
                             </div>
                           </div>
                         </div>
