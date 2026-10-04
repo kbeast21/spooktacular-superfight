@@ -59,15 +59,15 @@ export default function App() {
   });
 
   return (
-    <div className="min-h-screen text-slate-100 font-sans pb-0 flex flex-col justify-between bg-slate-950 selection:bg-orange-500 selection:text-slate-950">
+    <div className="min-h-screen text-slate-100 font-sans flex flex-col justify-between bg-slate-950 selection:bg-orange-500 selection:text-slate-950">
       <div>
-        {/* Sticky Top Header */}
-        <header className="sticky top-0 z-50 bg-slate-950/95 backdrop-blur-md border-b border-purple-900/40 shadow-lg shadow-purple-950/30">
+        {/* Sticky Top Navigation */}
+        <header className="sticky top-0 z-50 bg-slate-950/95 backdrop-blur-md border-b-2 border-purple-900/60 shadow-xl shadow-purple-950/40">
           <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
             
-            {/* Logo */}
+            {/* App Branding */}
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-purple-600 flex items-center justify-center shadow-lg glow-orange text-xl">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-purple-600 flex items-center justify-center shadow-lg text-xl border border-orange-400/30">
                 🎃
               </div>
               <div>
@@ -80,13 +80,13 @@ export default function App() {
               </div>
             </div>
 
-            {/* Navigation Mode Switcher */}
-            <nav className="flex items-center bg-slate-900/90 p-1 rounded-xl border border-purple-900/40">
+            {/* Navigation Tabs */}
+            <nav className="flex items-center bg-slate-900/90 p-1 rounded-xl border border-purple-900/50">
               <button
                 onClick={() => setActiveTab('bracket')}
                 className={`py-1.5 px-3 sm:px-4 rounded-lg font-bold transition-all text-xs sm:text-sm flex items-center gap-2 ${
                   activeTab === 'bracket'
-                    ? 'bg-purple-900/90 text-orange-400 border border-orange-500/40 shadow-md'
+                    ? 'bg-purple-900/90 text-orange-400 border border-orange-500/50 shadow-md'
                     : 'text-slate-400 hover:text-purple-300'
                 }`}
               >
@@ -97,7 +97,7 @@ export default function App() {
                 onClick={() => setActiveTab('roster')}
                 className={`py-1.5 px-3 sm:px-4 rounded-lg font-bold transition-all text-xs sm:text-sm flex items-center gap-2 ${
                   activeTab === 'roster'
-                    ? 'bg-purple-900/90 text-orange-400 border border-orange-500/40 shadow-md'
+                    ? 'bg-purple-900/90 text-orange-400 border border-orange-500/50 shadow-md'
                     : 'text-slate-400 hover:text-purple-300'
                 }`}
               >
@@ -106,12 +106,12 @@ export default function App() {
               </button>
             </nav>
 
-            {/* Vote Action */}
+            {/* Google Form Link */}
             <a
               href={tournamentData.activeVotingUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden sm:flex bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-300 text-slate-950 font-black py-2 px-5 rounded-xl text-xs tracking-wider uppercase shadow-lg glow-orange transition-all duration-200 hover:scale-105 items-center gap-2"
+              className="hidden sm:flex bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-300 text-slate-950 font-black py-2 px-5 rounded-xl text-xs tracking-wider uppercase shadow-lg transition-all duration-200 hover:scale-105 items-center gap-2 border border-orange-300/40"
             >
               <span>🗳️</span>
               <span>Vote Ballot</span>
@@ -119,29 +119,20 @@ export default function App() {
           </div>
         </header>
 
-        {/* Dashboard Stat Bar */}
-        <div className="bg-gradient-to-b from-purple-950/40 via-slate-950/80 to-slate-950 border-b border-purple-900/30 py-5 px-4">
-          <div className="max-w-6xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-            <div className="bg-slate-900/70 border border-purple-900/40 rounded-xl p-3 shadow-md">
-              <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest block mb-0.5">Active Round</span>
-              <span className="text-lg font-black text-orange-400">{tournamentData.activeRound}</span>
-            </div>
-            <div className="bg-slate-900/70 border border-purple-900/40 rounded-xl p-3 shadow-md">
-              <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest block mb-0.5">Round Matches</span>
-              <span className="text-lg font-black text-amber-300">
-                {tournamentData.rounds[selectedRound]?.matchups.length || 0} Battles
+        {/* Status Banner */}
+        <div className="bg-purple-950/30 border-b border-purple-900/40 py-4 px-4">
+          <div className="max-w-6xl mx-auto flex flex-wrap justify-between items-center text-xs gap-3">
+            <div className="flex items-center space-x-3">
+              <span className="flex h-2.5 w-2.5 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              </span>
+              <span className="font-extrabold text-slate-200 uppercase tracking-wide">
+                Active Round: <span className="text-orange-400">{tournamentData.activeRound}</span>
               </span>
             </div>
-            <div className="bg-slate-900/70 border border-purple-900/40 rounded-xl p-3 shadow-md">
-              <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest block mb-0.5">Roster Count</span>
-              <span className="text-lg font-black text-purple-300">32 Fighters</span>
-            </div>
-            <div className="bg-slate-900/70 border border-purple-900/40 rounded-xl p-3 shadow-md">
-              <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest block mb-0.5">Voting Status</span>
-              <span className="text-lg font-black text-emerald-400 flex items-center justify-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block"></span>
-                Live
-              </span>
+            <div className="text-purple-300/80 font-medium">
+              Cast your vote on the ballot to update live match scores!
             </div>
           </div>
         </div>
@@ -150,17 +141,17 @@ export default function App() {
         <main className="max-w-6xl mx-auto px-4 py-8">
           {activeTab === 'bracket' && (
             <div>
-              {/* Round Switcher Tabs */}
+              {/* Round Selection Tabs */}
               <div className="flex items-center justify-between mb-8 pb-3 border-b border-purple-900/40">
                 <div className="flex space-x-2">
                   {tournamentData.rounds.map((round, idx) => (
                     <button
                       key={round.roundNumber}
                       onClick={() => setSelectedRound(idx)}
-                      className={`px-4 py-2 rounded-xl text-xs font-extrabold tracking-wider uppercase transition-all ${
+                      className={`px-4 py-2 rounded-xl text-xs font-black tracking-wider uppercase transition-all ${
                         selectedRound === idx
-                          ? 'bg-orange-500 text-slate-950 shadow-lg glow-orange'
-                          : 'bg-slate-900/80 text-purple-300 border border-purple-900/40 hover:bg-purple-950/60'
+                          ? 'bg-orange-500 text-slate-950 shadow-lg border border-orange-300'
+                          : 'bg-slate-900/80 text-purple-300 border border-purple-900/50 hover:bg-purple-950/60'
                       }`}
                     >
                       {round.roundName}
@@ -177,8 +168,8 @@ export default function App() {
                 </a>
               </div>
 
-              {/* Matchups Grid - Each Matchup in an Isolated Card Box */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Grid of Distinct Matchup Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {tournamentData.rounds[selectedRound].matchups.map((match) => {
                   const fA = getFighter(match.fighterAId);
                   const fB = getFighter(match.fighterBId);
@@ -189,34 +180,37 @@ export default function App() {
                   const pctB = totalVotes > 0 ? Math.round((scoreB / totalVotes) * 100) : 50;
 
                   return (
+                    /* DISTINCT OUTER MATCHUP BOX */
                     <div
                       key={match.id}
-                      className="bg-slate-900/90 border-2 border-purple-900/60 hover:border-orange-500/60 rounded-2xl p-5 shadow-2xl transition-all duration-300 hover:shadow-purple-950/50 flex flex-col justify-between"
+                      className="bg-slate-900/90 border-2 border-purple-800/80 hover:border-orange-500 rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 flex flex-col justify-between"
                     >
-                      {/* Box Top Banner */}
-                      <div className="flex justify-between items-center mb-4 pb-2.5 border-b border-purple-900/40">
-                        <span className="font-black text-sm text-orange-400 uppercase tracking-wide">
-                          {match.matchTitle}
-                        </span>
-                        <span className="bg-purple-950 text-purple-300 border border-purple-800/50 text-[11px] px-2.5 py-0.5 rounded-md font-mono">
+                      {/* CARD HEADER BAR */}
+                      <div className="bg-slate-950/90 px-5 py-3 border-b-2 border-purple-900/60 flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <span className="text-orange-400 text-xs font-black tracking-wider uppercase">
+                            {match.matchTitle}
+                          </span>
+                        </div>
+                        <span className="bg-purple-950/90 text-purple-300 border border-purple-800/60 text-[11px] font-mono px-2.5 py-0.5 rounded-lg">
                           📍 {match.location}
                         </span>
                       </div>
 
-                      {/* Box Content - Fighter Panels */}
-                      <div className="space-y-3 my-auto">
-                        {/* Fighter A Box */}
-                        <div className={`p-3.5 rounded-xl border transition-all ${
+                      {/* CARD BODY CONTENT */}
+                      <div className="p-5 space-y-3">
+                        {/* Fighter A Panel */}
+                        <div className={`p-3.5 rounded-2xl border-2 transition-all ${
                           scoreA > scoreB 
-                            ? 'bg-purple-950/50 border-orange-500/50 shadow-inner' 
-                            : 'bg-slate-950/90 border-purple-900/40'
+                            ? 'bg-purple-950/50 border-orange-500/80 shadow-md' 
+                            : 'bg-slate-950/80 border-purple-900/40'
                         }`}>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-3.5">
                               <span className="text-3xl filter drop-shadow">{fA.image}</span>
                               <div>
-                                <div className="flex items-center gap-1.5">
-                                  <span className="text-[10px] font-mono font-black px-1.5 py-0.5 rounded bg-orange-950 text-orange-400 border border-orange-500/30">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-mono font-black px-1.5 py-0.5 rounded bg-orange-950 text-orange-400 border border-orange-500/40">
                                     #{fA.seed}
                                   </span>
                                   <span className="font-bold text-sm text-slate-100">{fA.name}</span>
@@ -226,38 +220,38 @@ export default function App() {
                                 </p>
                               </div>
                             </div>
-                            <div className="text-right pl-2">
+                            <div className="text-right pl-3">
                               <span className="text-xl font-black font-mono text-amber-400 block leading-none">
                                 {scoreA}
                               </span>
-                              <span className="text-[10px] text-slate-500 font-mono">{pctA}%</span>
+                              <span className="text-[10px] text-slate-500 font-mono font-semibold">{pctA}%</span>
                             </div>
                           </div>
                         </div>
 
-                        {/* Visual Vote Progress Bar */}
+                        {/* VS Divider & Bar */}
                         <div className="relative my-2">
-                          <div className="h-2 w-full bg-slate-950 rounded-full overflow-hidden flex border border-purple-900/40">
+                          <div className="h-2 w-full bg-slate-950 rounded-full overflow-hidden flex border border-purple-900/50">
                             <div style={{ width: `${pctA}%` }} className="bg-gradient-to-r from-orange-500 to-amber-400 h-full transition-all duration-500"></div>
                             <div style={{ width: `${pctB}%` }} className="bg-gradient-to-r from-purple-600 to-indigo-500 h-full transition-all duration-500"></div>
                           </div>
-                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-950 px-2 py-0.5 text-[9px] font-black text-purple-400 border border-purple-900/60 rounded-full uppercase">
+                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-950 px-2.5 py-0.5 text-[9px] font-black text-purple-400 border border-purple-900/80 rounded-full uppercase tracking-widest shadow-md">
                             VS
                           </div>
                         </div>
 
-                        {/* Fighter B Box */}
-                        <div className={`p-3.5 rounded-xl border transition-all ${
+                        {/* Fighter B Panel */}
+                        <div className={`p-3.5 rounded-2xl border-2 transition-all ${
                           scoreB > scoreA 
-                            ? 'bg-purple-950/50 border-orange-500/50 shadow-inner' 
-                            : 'bg-slate-950/90 border-purple-900/40'
+                            ? 'bg-purple-950/50 border-orange-500/80 shadow-md' 
+                            : 'bg-slate-950/80 border-purple-900/40'
                         }`}>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-3.5">
                               <span className="text-3xl filter drop-shadow">{fB.image}</span>
                               <div>
-                                <div className="flex items-center gap-1.5">
-                                  <span className="text-[10px] font-mono font-black px-1.5 py-0.5 rounded bg-purple-950 text-purple-400 border border-purple-500/30">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-mono font-black px-1.5 py-0.5 rounded bg-purple-950 text-purple-400 border border-purple-500/40">
                                     #{fB.seed}
                                   </span>
                                   <span className="font-bold text-sm text-slate-100">{fB.name}</span>
@@ -267,11 +261,11 @@ export default function App() {
                                 </p>
                               </div>
                             </div>
-                            <div className="text-right pl-2">
+                            <div className="text-right pl-3">
                               <span className="text-xl font-black font-mono text-amber-400 block leading-none">
                                 {scoreB}
                               </span>
-                              <span className="text-[10px] text-slate-500 font-mono">{pctB}%</span>
+                              <span className="text-[10px] text-slate-500 font-mono font-semibold">{pctB}%</span>
                             </div>
                           </div>
                         </div>
@@ -317,7 +311,7 @@ export default function App() {
                       onClick={() => setStatusFilter(tab.id)}
                       className={`flex-1 sm:flex-none px-3 py-2 rounded-xl font-semibold transition-all text-center ${
                         statusFilter === tab.id
-                          ? 'bg-purple-900/80 text-orange-400 border border-orange-500/40 glow-orange'
+                          ? 'bg-purple-900/80 text-orange-400 border border-orange-500/40'
                           : 'bg-slate-950/60 text-slate-400 hover:text-purple-300 border border-purple-900/20'
                       }`}
                     >
@@ -332,9 +326,9 @@ export default function App() {
                 {filteredFighters.map((f) => (
                   <div
                     key={f.id}
-                    className={`bg-slate-900/90 border rounded-xl p-4 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 ${
+                    className={`bg-slate-900/90 border-2 rounded-2xl p-4 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 ${
                       f.status === 'Main Bracket'
-                        ? 'border-purple-800/50 hover:border-orange-500/50 hover:glow-orange'
+                        ? 'border-purple-800/60 hover:border-orange-500'
                         : 'border-slate-800/60 hover:border-purple-600/40 opacity-80 hover:opacity-100'
                     }`}
                   >
@@ -376,7 +370,7 @@ export default function App() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-slate-950 border-t border-purple-900/40 text-slate-400 py-8 px-4 mt-auto">
+      <footer className="bg-slate-950 border-t-2 border-purple-900/50 text-slate-400 py-8 px-4 mt-auto">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
           <div className="flex items-center space-x-2">
             <span>🎃</span>
@@ -384,7 +378,7 @@ export default function App() {
           </div>
           <div className="flex space-x-4">
             <button onClick={handleShare} className="hover:text-orange-400 transition-colors">
-              {copied ? 'Link Copied!' : 'Copy App Link'}
+              {copied ? 'Link Copied!' : 'Copy Site Link'}
             </button>
             <a href={tournamentData.activeVotingUrl} target="_blank" rel="noopener noreferrer" className="hover:text-orange-400 transition-colors">
               Official Google Form
