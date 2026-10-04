@@ -5,55 +5,33 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('bracket');
   const [expandedMatch, setExpandedMatch] = useState(null);
 
-  // Toggle matchup detailed score card breakdown
   const toggleMatchDetails = (matchId) => {
     setExpandedMatch(expandedMatch === matchId ? null : matchId);
   };
 
-  // Fallback data structure with detailed category scoring
-  const rounds = tournamentData?.rounds || [
+  // Helper map to quickly look up fighters by ID
+  const fightersById = React.useMemo(() => {
+    const map = {};
+    if (tournamentData?.fighters) {
+      tournamentData.fighters.forEach((f) => {
+        map[f.id] = f;
+      });
+    }
+    return map;
+  }, []);
+
+  // Standard rounds structure merged with data from JSON
+  const rounds = [
     {
-      id: 'sweet-sixteen',
+      id: 'sweet-16',
       name: 'SWEET SIXTEEN',
       date: 'Oct 16 – Oct 21',
       status: 'active',
-      matchups: [
-        {
-          id: 'M1',
-          location: 'An abandoned Spirit Halloween store',
-          status: 'In Progress',
-          fighter1: {
-            name: 'Dracula',
-            icon: '🦇',
-            points: 42,
-            scores: { trait: 18, location: 14, hazard: 10 },
-          },
-          fighter2: {
-            name: 'Carlos the Painting',
-            icon: '🖼️',
-            points: 38,
-            scores: { trait: 12, location: 16, hazard: 10 },
-          },
-        },
-        {
-          id: 'M2',
-          location: 'An abandoned Spirit Halloween store',
-          status: 'Final',
-          winner: 'A Werewolf',
-          fighter1: {
-            name: 'A Werewolf',
-            icon: '🐺',
-            points: 55,
-            scores: { trait: 22, location: 18, hazard: 15 },
-          },
-          fighter2: {
-            name: 'A Mad Scientist',
-            icon: '🧪',
-            points: 31,
-            scores: { trait: 10, location: 11, hazard: 10 },
-          },
-        },
-      ],
+      matchups: (tournamentData?.rounds?.[0]?.matchups || []).map((m) => ({
+        ...m,
+        fighter1: fightersById[m.fighterAId] || { name: m.fighterAId, image: '❓', votes: 0 },
+        fighter2: fightersById[m.fighterBId] || { name: m.fighterBId, image: '❓', votes: 0 },
+      })),
     },
     {
       id: 'elite-eight',
@@ -75,17 +53,21 @@ export default function App() {
     },
   ];
 
+  const votingUrl = tournamentData?.activeVotingUrl || '#';
+  const activeRoundName = tournamentData?.activeRound || 'Sweet Sixteen';
+
   return (
     <div className="min-h-screen bg-[#0B0E17] text-slate-100 font-sans flex flex-col">
       {/* 1. TOP HEADER */}
       <header className="bg-[#0D1117] border-b border-slate-800/80 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+        {/* Title & Skull Icon */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-2xl">
             💀
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-black tracking-wide text-orange-500 uppercase">
-              OCTOBER MADNESS 2026
+              {tournamentData?.tournamentName || 'OCTOBER MADNESS 2026'}
             </h1>
             <p className="text-xs text-slate-400 font-medium">
               Culminating Midnight on Halloween 2026
@@ -93,15 +75,16 @@ export default function App() {
           </div>
         </div>
 
+        {/* Status Pill & Vote Button */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 bg-[#191F2E] border border-purple-500/30 text-purple-300 text-xs px-3.5 py-2 rounded-lg font-medium">
             <span>📅</span>
             <span>
-              Active Round: <strong className="text-purple-200">Sweet Sixteen</strong>
+              Active Round: <strong className="text-purple-200">{activeRoundName}</strong>
             </span>
           </div>
           <a
-            href="https://forms.google.com"
+            href={votingUrl}
             target="_blank"
             rel="noreferrer"
             className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all shadow-md shadow-orange-500/20 active:scale-95"
@@ -115,10 +98,10 @@ export default function App() {
       <div className="bg-[#2A1508] border-b border-orange-900/40 text-orange-400 text-xs py-2.5 px-4 text-center font-medium flex items-center justify-center gap-2">
         <span className="text-sm">⚠️</span>
         <span>
-          Ballots for <strong>Sweet Sixteen</strong> are currently OPEN!
+          Ballots for <strong>{activeRoundName}</strong> are currently OPEN!
         </span>
         <a
-          href="https://forms.google.com"
+          href={votingUrl}
           target="_blank"
           rel="noreferrer"
           className="underline font-bold text-orange-300 hover:text-orange-200 ml-1 inline-flex items-center gap-0.5"
@@ -148,7 +131,7 @@ export default function App() {
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            Fighter Vault (32)
+            Fighter Vault ({tournamentData?.fighters?.length || 32})
           </button>
           <button
             onClick={() => setActiveTab('hazards')}
@@ -163,13 +146,13 @@ export default function App() {
         </div>
       </nav>
 
-      {/* 4. MAIN BRACKET & SCORE CARDS */}
+      {/* 4. MAIN BRACKET CONTENT */}
       <main className="flex-1 overflow-x-auto p-6 md:p-8">
         {activeTab === 'bracket' && (
           <div className="flex gap-6 min-w-max items-start">
             {rounds.map((round) => (
               <div key={round.id} className="w-80 flex flex-col gap-4">
-                {/* Round Header */}
+                {/* Round Title */}
                 <div className="border-b border-slate-800 pb-2">
                   <h2 className="text-sm font-black tracking-wider text-orange-500 uppercase">
                     {round.name}
@@ -178,111 +161,95 @@ export default function App() {
                 </div>
 
                 {/* Matchup Cards */}
-                {round.status === 'active' && round.matchups ? (
+                {round.status === 'active' && round.matchups.length > 0 ? (
                   round.matchups.map((match) => {
                     const isExpanded = expandedMatch === match.id;
                     return (
                       <div
                         key={match.id}
-                        className="bg-[#161B26] border border-slate-800/90 rounded-xl p-3 shadow-xl flex flex-col gap-2"
+                        className="bg-[#161B26] border border-slate-800/90 rounded-xl p-3 shadow-xl flex flex-col gap-2 hover:border-slate-700/80 transition-all"
                       >
-                        {/* Match Header (Location & Match ID) */}
+                        {/* Match Location & Title */}
                         <div className="flex items-center justify-between text-[11px] font-medium text-purple-400">
-                          <span className="truncate pr-2 flex items-center gap-1.5">
+                          <span className="truncate pr-2 flex items-center gap-1.5" title={match.location}>
                             <span>📍</span> {match.location}
                           </span>
-                          <span className="text-slate-500 font-mono text-[10px]">
-                            Match {match.id}
+                          <span className="text-slate-500 font-mono text-[10px] uppercase">
+                            {match.id}
                           </span>
                         </div>
 
-                        {/* Fighter 1 Row */}
-                        <div
-                          className={`flex items-center justify-between p-2.5 rounded-lg border transition-colors ${
-                            match.winner === match.fighter1.name
-                              ? 'bg-orange-500/10 border-orange-500/50'
-                              : 'bg-[#0D1117] border-slate-800/50'
-                          }`}
-                        >
+                        {/* Match Title Subheader */}
+                        {match.matchTitle && (
+                          <div className="text-[10px] font-bold text-orange-400/90 bg-orange-950/30 px-2 py-0.5 rounded border border-orange-900/30">
+                            {match.matchTitle}
+                          </div>
+                        )}
+
+                        {/* Fighter 1 Card */}
+                        <div className="flex items-center justify-between bg-[#0D1117] p-2.5 rounded-lg border border-slate-800/50">
                           <div className="flex items-center gap-2">
-                            <span className="text-base">{match.fighter1.icon}</span>
-                            <span className="text-xs font-bold text-slate-200">
-                              {match.fighter1.name}
-                            </span>
-                            {match.winner === match.fighter1.name && (
-                              <span className="text-[10px] bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded font-bold">
-                                WINNER
+                            <span className="text-lg">{match.fighter1.image}</span>
+                            <div>
+                              <span className="text-xs font-bold text-slate-200 block">
+                                {match.fighter1.name}
                               </span>
-                            )}
+                              {match.fighter1.seed && (
+                                <span className="text-[9px] text-slate-500">Seed #{match.fighter1.seed}</span>
+                              )}
+                            </div>
                           </div>
                           <span className="text-xs font-mono font-bold text-orange-400">
-                            {match.fighter1.points} pts
+                            {match.fighter1.votes || 0} pts
                           </span>
                         </div>
 
-                        {/* Fighter 2 Row */}
-                        <div
-                          className={`flex items-center justify-between p-2.5 rounded-lg border transition-colors ${
-                            match.winner === match.fighter2.name
-                              ? 'bg-orange-500/10 border-orange-500/50'
-                              : 'bg-[#0D1117] border-slate-800/50'
-                          }`}
-                        >
+                        {/* Fighter 2 Card */}
+                        <div className="flex items-center justify-between bg-[#0D1117] p-2.5 rounded-lg border border-slate-800/50">
                           <div className="flex items-center gap-2">
-                            <span className="text-base">{match.fighter2.icon}</span>
-                            <span className="text-xs font-bold text-slate-200">
-                              {match.fighter2.name}
-                            </span>
-                            {match.winner === match.fighter2.name && (
-                              <span className="text-[10px] bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded font-bold">
-                                WINNER
+                            <span className="text-lg">{match.fighter2.image}</span>
+                            <div>
+                              <span className="text-xs font-bold text-slate-200 block">
+                                {match.fighter2.name}
                               </span>
-                            )}
+                              {match.fighter2.seed && (
+                                <span className="text-[9px] text-slate-500">Seed #{match.fighter2.seed}</span>
+                              )}
+                            </div>
                           </div>
                           <span className="text-xs font-mono font-bold text-orange-400">
-                            {match.fighter2.points} pts
+                            {match.fighter2.votes || 0} pts
                           </span>
                         </div>
 
-                        {/* Score Card Detail Breakdown (Expandable) */}
-                        {isExpanded && match.fighter1.scores && (
-                          <div className="mt-2 pt-2 border-t border-slate-800/80 text-[11px] bg-[#0D1117] p-2 rounded-lg">
-                            <p className="text-[10px] font-bold text-purple-300 uppercase mb-1.5 tracking-wider">
-                              Category Score Breakdown
-                            </p>
-                            
-                            {/* Score Row: Trait */}
-                            <div className="flex justify-between text-slate-400 py-0.5">
-                              <span>Fighter Attributes</span>
-                              <span className="font-mono text-slate-200">
-                                {match.fighter1.scores.trait} vs {match.fighter2.scores.trait}
-                              </span>
+                        {/* Score Breakdown (Expanded) */}
+                        {isExpanded && (
+                          <div className="mt-2 pt-2 border-t border-slate-800/80 text-[11px] bg-[#0D1117] p-2.5 rounded-lg space-y-2">
+                            <div>
+                              <p className="text-[10px] font-bold text-purple-300 uppercase">
+                                {match.fighter1.name} Attributes:
+                              </p>
+                              <p className="text-[10px] text-slate-400">
+                                {match.fighter1.attributes?.join(', ') || 'Standard fighter skills'}
+                              </p>
                             </div>
-
-                            {/* Score Row: Location */}
-                            <div className="flex justify-between text-slate-400 py-0.5">
-                              <span>Location Advantage</span>
-                              <span className="font-mono text-slate-200">
-                                {match.fighter1.scores.location} vs {match.fighter2.scores.location}
-                              </span>
-                            </div>
-
-                            {/* Score Row: Hazard */}
-                            <div className="flex justify-between text-slate-400 py-0.5">
-                              <span>Hazard Survival</span>
-                              <span className="font-mono text-slate-200">
-                                {match.fighter1.scores.hazard} vs {match.fighter2.scores.hazard}
-                              </span>
+                            <div>
+                              <p className="text-[10px] font-bold text-purple-300 uppercase">
+                                {match.fighter2.name} Attributes:
+                              </p>
+                              <p className="text-[10px] text-slate-400">
+                                {match.fighter2.attributes?.join(', ') || 'Standard fighter skills'}
+                              </p>
                             </div>
                           </div>
                         )}
 
-                        {/* Toggle Score Card Button */}
+                        {/* Expand Details Toggle */}
                         <button
                           onClick={() => toggleMatchDetails(match.id)}
                           className="w-full text-center text-[10px] font-semibold text-slate-400 hover:text-orange-400 pt-1 transition-colors"
                         >
-                          {isExpanded ? 'Hide Score Breakdown ▲' : 'View Score Breakdown ▼'}
+                          {isExpanded ? 'Hide Fighter Attributes ▲' : 'View Fighter Attributes ▼'}
                         </button>
                       </div>
                     );
@@ -297,13 +264,46 @@ export default function App() {
           </div>
         )}
 
+        {/* FIGHTER VAULT TAB */}
         {activeTab === 'vault' && (
-          <div className="text-slate-400 text-sm max-w-xl mx-auto text-center py-12">
-            <p className="text-lg font-bold text-slate-200 mb-2">Fighter Vault</p>
-            <p>Roster card profiles and fighter attributes will display here.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-7xl mx-auto">
+            {tournamentData?.fighters?.map((fighter) => (
+              <div
+                key={fighter.id}
+                className="bg-[#161B26] border border-slate-800 rounded-xl p-4 flex flex-col justify-between shadow-lg"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-3xl">{fighter.image}</span>
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                        fighter.status === 'Main Bracket'
+                          ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                          : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                      }`}
+                    >
+                      {fighter.status}
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-100">{fighter.name}</h3>
+                  <p className="text-xs text-slate-400 mt-1 line-clamp-2">{fighter.bio}</p>
+                </div>
+                <div className="mt-3 pt-2 border-t border-slate-800/60 flex flex-wrap gap-1">
+                  {fighter.attributes?.map((attr, idx) => (
+                    <span
+                      key={idx}
+                      className="text-[9px] bg-[#0D1117] text-slate-300 px-1.5 py-0.5 rounded border border-slate-800"
+                    >
+                      {attr}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
+        {/* HAZARDS TAB */}
         {activeTab === 'hazards' && (
           <div className="text-slate-400 text-sm max-w-xl mx-auto text-center py-12">
             <p className="text-lg font-bold text-slate-200 mb-2">Locations & Hazards</p>
