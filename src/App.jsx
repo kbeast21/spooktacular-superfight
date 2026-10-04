@@ -111,7 +111,7 @@ export default function App() {
           </h2>
           
           <p className="text-purple-300/70 text-sm md:text-base max-w-xl mx-auto font-medium">
-            Cast your votes in the Google Form to crown the 2026 Champion. Scores update dynamically throughout the round!
+            Cast your votes in the Google Form to crown the champion. Scores update dynamically throughout the round!
           </p>
         </section>
 
@@ -128,56 +128,63 @@ export default function App() {
                 return (
                   <div
                     key={match.id}
-                    className="bg-gradient-to-b from-slate-900 via-purple-950/20 to-slate-950 border border-purple-900/40 hover:border-orange-500/40 rounded-2xl p-5 transition-all duration-300 hover:glow-purple group"
+                    className="bg-slate-900/80 border border-purple-900/40 hover:border-orange-500/50 rounded-2xl p-4 transition-all duration-300 hover:glow-purple group shadow-lg"
                   >
-                    <div className="text-xs font-bold text-purple-400 uppercase tracking-wider mb-3 flex justify-between items-center border-b border-purple-900/40 pb-2">
-                      <span className="text-orange-400">{match.matchTitle}</span>
-                      <span className="text-slate-500 text-[11px] font-normal italic">
-                        📍 {match.location}
-                      </span>
+                    {/* Header */}
+                    <div className="flex justify-between items-center mb-3 pb-2 border-b border-purple-900/30 text-xs">
+                      <span className="font-bold text-orange-400 tracking-wide">{match.matchTitle}</span>
+                      <span className="text-slate-500 text-[11px] italic">📍 {match.location}</span>
                     </div>
 
-                    <div className="space-y-3">
+                    {/* Unified Fighters Container */}
+                    <div className="space-y-2">
                       {/* Fighter A */}
-                      <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-950/80 border border-purple-900/30 group-hover:border-purple-800/50 transition-colors">
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950/70 border border-purple-900/20 group-hover:border-purple-800/40 transition-colors">
                         <div className="flex items-center space-x-3.5">
                           <span className="text-3xl filter drop-shadow">{fA.image}</span>
                           <div>
-                            <p className="font-bold text-slate-100 flex items-center gap-2">
-                              <span className="text-xs px-1.5 py-0.5 rounded bg-orange-950 text-orange-400 font-mono border border-orange-500/30">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-orange-950 text-orange-400 border border-orange-500/30">
                                 #{fA.seed}
                               </span>
-                              {fA.name}
-                            </p>
-                            <p className="text-xs text-purple-300/60 mt-0.5">
+                              <span className="font-bold text-sm text-slate-100">{fA.name}</span>
+                            </div>
+                            <p className="text-[11px] text-purple-300/60 mt-0.5">
                               {fA.attributes.join(' • ')}
                             </p>
                           </div>
                         </div>
-                        <span className="text-2xl font-black text-amber-400 font-mono pl-2">
-                          {scoreA}
-                        </span>
+                        <div className="bg-slate-900/90 px-3.5 py-1.5 rounded-xl border border-purple-800/50 min-w-[48px] text-center shadow-inner">
+                          <span className="text-lg font-black font-mono text-amber-400">{scoreA}</span>
+                        </div>
+                      </div>
+
+                      {/* VS Divider */}
+                      <div className="text-center my-1 flex items-center justify-center gap-2">
+                        <div className="h-[1px] bg-purple-900/30 flex-1"></div>
+                        <span className="text-[10px] font-black tracking-widest text-purple-500/60 uppercase">VS</span>
+                        <div className="h-[1px] bg-purple-900/30 flex-1"></div>
                       </div>
 
                       {/* Fighter B */}
-                      <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-950/80 border border-purple-900/30 group-hover:border-purple-800/50 transition-colors">
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950/70 border border-purple-900/20 group-hover:border-purple-800/40 transition-colors">
                         <div className="flex items-center space-x-3.5">
                           <span className="text-3xl filter drop-shadow">{fB.image}</span>
                           <div>
-                            <p className="font-bold text-slate-100 flex items-center gap-2">
-                              <span className="text-xs px-1.5 py-0.5 rounded bg-orange-950 text-orange-400 font-mono border border-orange-500/30">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-orange-950 text-orange-400 border border-orange-500/30">
                                 #{fB.seed}
                               </span>
-                              {fB.name}
-                            </p>
-                            <p className="text-xs text-purple-300/60 mt-0.5">
+                              <span className="font-bold text-sm text-slate-100">{fB.name}</span>
+                            </div>
+                            <p className="text-[11px] text-purple-300/60 mt-0.5">
                               {fB.attributes.join(' • ')}
                             </p>
                           </div>
                         </div>
-                        <span className="text-2xl font-black text-amber-400 font-mono pl-2">
-                          {scoreB}
-                        </span>
+                        <div className="bg-slate-900/90 px-3.5 py-1.5 rounded-xl border border-purple-800/50 min-w-[48px] text-center shadow-inner">
+                          <span className="text-lg font-black font-mono text-amber-400">{scoreB}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -305,7 +312,7 @@ export default function App() {
 
         </div>
 
-        {/* Copyright / Attribution */}
+        {/* Copyright */}
         <div className="max-w-6xl mx-auto border-t border-purple-900/30 pt-6 text-center text-xs text-slate-500">
           <p>© 2026 Spooktacular Superfight • October Madness Edition</p>
         </div>
