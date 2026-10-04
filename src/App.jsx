@@ -1,16 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import tournamentData from './data/tournament.json';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('bracket');
   const [expandedMatch, setExpandedMatch] = useState(null);
+  const [liveScores, setLiveScores] = useState({});
+  const [loadingScores, setLoadingScores] = useState(true);
+
+  // 1. Fetch Live Scores from Google Sheet CSV
+  useEffect(() => {
+    async function fetchScores() {
+      if (!tournamentData?.googleSheetCsvUrl) {
+        setLoadingScores(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(tournamentData.googleSheetCsvUrl);
+        const csvText = await response.text();
+
+        // Simple CSV parser assuming lines format: matchId,fighterAId,scoreA,fighterBId,scoreB
+        // or fighterId,score
+        const lines = csvText.split('\n');
+        const parsedScores = {};
+
+        lines.forEach((line) => {
+          const columns = line.split(',').map((col) => col.trim().replace(/^"|"$/g, ''));
+          
+          // Example parser for rows like: "dracula", "14" or "m1", "dracula", "14"
+          if (columns.length >= 2) {
+            const key = columns[0].toLowerCase();
+            const val = parseInt(columns[1], 10);
+            if (!isNaN(val)) {
+              parsedScores[key] = val;
+            }
+          }
+        });
+
+        setLiveScores(parsedScores);
+      } catch (err) {
+        console.error('Failed to load live scores from Google Sheets:', err);
+      } finally {
+        setLoadingScores(false);
+      }
+    }
+
+    fetchScores();
+  }, []);
 
   const toggleMatchDetails = (matchId) => {
     setExpandedMatch(expandedMatch === matchId ? null : matchId);
   };
 
   // Helper map to quickly look up fighters by ID
-  const fightersById = React.useMemo(() => {
+  const fightersById = useMemo(() => {
     const map = {};
     if (tournamentData?.fighters) {
       tournamentData.fighters.forEach((f) => {
@@ -20,18 +63,27 @@ export default function App() {
     return map;
   }, []);
 
-  // Standard rounds structure merged with data from JSON
+  // Standard rounds structure merged with data from JSON & Live Sheets
   const rounds = [
     {
       id: 'sweet-16',
       name: 'SWEET SIXTEEN',
       date: 'Oct 16 – Oct 21',
       status: 'active',
-      matchups: (tournamentData?.rounds?.[0]?.matchups || []).map((m) => ({
-        ...m,
-        fighter1: fightersById[m.fighterAId] || { name: m.fighterAId, image: '❓', votes: 0 },
-        fighter2: fightersById[m.fighterBId] || { name: m.fighterBId, image: '❓', votes: 0 },
-      })),
+      matchups: (tournamentData?.rounds?.[0]?.matchups || []).map((m) => {
+        const fA = fightersById[m.fighterAId] || { name: m.fighterAId, image: '❓' };
+        const fB = fightersById[m.fighterBId] || { name: m.fighterBId, image: '❓' };
+
+        // Pull live score from state if present, otherwise fallback to fighter.votes or 0
+        const scoreA = liveScores[m.fighterAId?.toLowerCase()] ?? fA.votes ?? 0;
+        const scoreB = liveScores[m.fighterBId?.toLowerCase()] ?? fB.votes ?? 0;
+
+        return {
+          ...m,
+          fighter1: { ...fA, currentScore: scoreA },
+          fighter2: { ...fB, currentScore: scoreB },
+        };
+      }),
     },
     {
       id: 'elite-eight',
@@ -60,7 +112,6 @@ export default function App() {
     <div className="min-h-screen bg-[#0B0E17] text-slate-100 font-sans flex flex-col">
       {/* 1. TOP HEADER */}
       <header className="bg-[#0D1117] border-b border-slate-800/80 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-        {/* Title & Skull Icon */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-2xl">
             💀
@@ -75,7 +126,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Status Pill & Vote Button */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 bg-[#191F2E] border border-purple-500/30 text-purple-300 text-xs px-3.5 py-2 rounded-lg font-medium">
             <span>📅</span>
@@ -200,7 +250,7 @@ export default function App() {
                             </div>
                           </div>
                           <span className="text-xs font-mono font-bold text-orange-400">
-                            {match.fighter1.votes || 0} pts
+                            {loadingScores ? '...' : `${match.fighter1.currentScore} pts`}
                           </span>
                         </div>
 
@@ -218,11 +268,11 @@ export default function App() {
                             </div>
                           </div>
                           <span className="text-xs font-mono font-bold text-orange-400">
-                            {match.fighter2.votes || 0} pts
+                            {loadingScores ? '...' : `${match.fighter2.currentScore} pts`}
                           </span>
                         </div>
 
-                        {/* Score Breakdown (Expanded) */}
+                        {/* Score Breakdown / Fighter Traits */}
                         {isExpanded && (
                           <div className="mt-2 pt-2 border-t border-slate-800/80 text-[11px] bg-[#0D1117] p-2.5 rounded-lg space-y-2">
                             <div>
