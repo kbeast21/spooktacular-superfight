@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './index.css';
 import tournamentData from './data/tournament.json';
 
 export default function App() {
