@@ -32,41 +32,51 @@ export default function App() {
   const getFighter = (id) => tournamentData.fighters.find((f) => f.id === id);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans p-4 md:p-8">
+    <div className="min-h-screen text-slate-100 font-sans p-4 md:p-8">
       {/* Header & Banner */}
-      <header className="max-w-6xl mx-auto text-center mb-8">
-        <h1 className="text-4xl md:text-6xl font-black text-orange-500 tracking-tight mb-2">
+      <header className="max-w-6xl mx-auto text-center mb-10 pt-4">
+        <div className="inline-block px-3 py-1 rounded-full bg-purple-950/80 border border-purple-500/30 text-purple-300 text-xs font-semibold tracking-wider uppercase mb-3 glow-purple">
+          👻 {tournamentData.activeRound} • Voting Open
+        </div>
+        <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-300 to-purple-400 text-glow-orange">
           {tournamentData.tournamentName}
         </h1>
-        <p className="text-slate-400 text-lg mb-6">Round: {tournamentData.activeRound}</p>
-        
+        <p className="text-purple-300/70 text-sm md:text-base mb-6 font-medium">
+          Deadline: Midnight on Halloween (October 31, 2026)
+        </p>
+
         <a
           href={tournamentData.activeVotingUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-block bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 px-8 rounded-full shadow-lg shadow-orange-900/40 transition-all text-lg animate-pulse"
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-slate-950 font-extrabold py-3.5 px-8 rounded-full shadow-lg glow-orange transition-all duration-300 transform hover:-translate-y-0.5 text-lg"
         >
-          🗳️ Cast Your Ballot Now
+          <span>🗳️</span>
+          <span>Cast Your Ballot Now</span>
         </a>
       </header>
 
       {/* Navigation */}
-      <div className="max-w-6xl mx-auto flex justify-center space-x-4 mb-8">
+      <div className="max-w-6xl mx-auto flex justify-center space-x-3 mb-10">
         <button
           onClick={() => setActiveTab('bracket')}
-          className={`py-2 px-6 rounded-lg font-bold transition-colors ${
-            activeTab === 'bracket' ? 'bg-slate-800 text-orange-400 border border-orange-500/30' : 'text-slate-400 hover:text-white'
+          className={`py-2.5 px-6 rounded-xl font-bold transition-all text-sm ${
+            activeTab === 'bracket'
+              ? 'bg-gradient-to-r from-purple-900 to-slate-900 text-orange-400 border border-orange-500/50 glow-orange'
+              : 'bg-slate-950/60 text-slate-400 hover:text-purple-300 border border-purple-900/30'
           }`}
         >
-          Main Bracket
+          ⚔️ Sweet Sixteen
         </button>
         <button
           onClick={() => setActiveTab('roster')}
-          className={`py-2 px-6 rounded-lg font-bold transition-colors ${
-            activeTab === 'roster' ? 'bg-slate-800 text-orange-400 border border-orange-500/30' : 'text-slate-400 hover:text-white'
+          className={`py-2.5 px-6 rounded-xl font-bold transition-all text-sm ${
+            activeTab === 'roster'
+              ? 'bg-gradient-to-r from-purple-900 to-slate-900 text-orange-400 border border-orange-500/50 glow-orange'
+              : 'bg-slate-950/60 text-slate-400 hover:text-purple-300 border border-purple-900/30'
           }`}
         >
-          All 32 Fighters
+          📜 All 32 Combatants
         </button>
       </div>
 
@@ -81,41 +91,58 @@ export default function App() {
               const scoreB = liveScores[match.id]?.votesB ?? match.votesB ?? 0;
 
               return (
-                <div key={match.id} className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-md">
-                  <div className="text-xs font-bold text-orange-400 uppercase tracking-wide mb-3 flex justify-between">
-                    <span>{match.matchTitle}</span>
-                    <span className="text-slate-500">{match.location}</span>
+                <div
+                  key={match.id}
+                  className="bg-gradient-to-b from-slate-900 via-purple-950/20 to-slate-950 border border-purple-900/40 hover:border-orange-500/40 rounded-2xl p-5 transition-all duration-300 hover:glow-purple group"
+                >
+                  <div className="text-xs font-bold text-purple-400 uppercase tracking-wider mb-3 flex justify-between items-center border-b border-purple-900/40 pb-2">
+                    <span className="text-orange-400">{match.matchTitle}</span>
+                    <span className="text-slate-500 text-[11px] font-normal italic">
+                      📍 {match.location}
+                    </span>
                   </div>
 
                   <div className="space-y-3">
                     {/* Fighter A */}
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-slate-950/60 border border-slate-800/80">
-                      <div className="flex items-center space-x-3">
-                        <span className="text-2xl">{fA.image}</span>
+                    <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-950/80 border border-purple-900/30 group-hover:border-purple-800/50 transition-colors">
+                      <div className="flex items-center space-x-3.5">
+                        <span className="text-3xl filter drop-shadow">{fA.image}</span>
                         <div>
-                          <p className="font-bold text-slate-100">
-                            <span className="text-orange-500 mr-2">#{fA.seed}</span>
+                          <p className="font-bold text-slate-100 flex items-center gap-2">
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-orange-950 text-orange-400 font-mono border border-orange-500/30">
+                              #{fA.seed}
+                            </span>
                             {fA.name}
                           </p>
-                          <p className="text-xs text-slate-400">{fA.attributes.join(' • ')}</p>
+                          <p className="text-xs text-purple-300/60 mt-0.5">
+                            {fA.attributes.join(' • ')}
+                          </p>
                         </div>
                       </div>
-                      <span className="text-2xl font-black text-orange-400">{scoreA}</span>
+                      <span className="text-2xl font-black text-amber-400 font-mono pl-2">
+                        {scoreA}
+                      </span>
                     </div>
 
                     {/* Fighter B */}
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-slate-950/60 border border-slate-800/80">
-                      <div className="flex items-center space-x-3">
-                        <span className="text-2xl">{fB.image}</span>
+                    <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-950/80 border border-purple-900/30 group-hover:border-purple-800/50 transition-colors">
+                      <div className="flex items-center space-x-3.5">
+                        <span className="text-3xl filter drop-shadow">{fB.image}</span>
                         <div>
-                          <p className="font-bold text-slate-100">
-                            <span className="text-orange-500 mr-2">#{fB.seed}</span>
+                          <p className="font-bold text-slate-100 flex items-center gap-2">
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-orange-950 text-orange-400 font-mono border border-orange-500/30">
+                              #{fB.seed}
+                            </span>
                             {fB.name}
                           </p>
-                          <p className="text-xs text-slate-400">{fB.attributes.join(' • ')}</p>
+                          <p className="text-xs text-purple-300/60 mt-0.5">
+                            {fB.attributes.join(' • ')}
+                          </p>
                         </div>
                       </div>
-                      <span className="text-2xl font-black text-orange-400">{scoreB}</span>
+                      <span className="text-2xl font-black text-amber-400 font-mono pl-2">
+                        {scoreB}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -127,19 +154,39 @@ export default function App() {
         {activeTab === 'roster' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {tournamentData.fighters.map((f) => (
-              <div key={f.id} className="bg-slate-900 border border-slate-800 rounded-lg p-4 flex flex-col justify-between">
+              <div
+                key={f.id}
+                className={`bg-slate-900/90 border rounded-xl p-4 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 ${
+                  f.status === 'Main Bracket'
+                    ? 'border-purple-800/50 hover:border-orange-500/50 hover:glow-orange'
+                    : 'border-slate-800/60 hover:border-purple-600/40 opacity-80 hover:opacity-100'
+                }`}
+              >
                 <div>
-                  <div className="text-3xl mb-2">{f.image}</div>
-                  <h3 className="font-bold text-lg text-slate-100 mb-1">
-                    {f.seed && <span className="text-orange-500 mr-1">#{f.seed}</span>}
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-3xl">{f.image}</span>
+                    <span
+                      className={`text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full ${
+                        f.status === 'Main Bracket'
+                          ? 'bg-orange-950 text-orange-400 border border-orange-500/30'
+                          : 'bg-purple-950 text-purple-300 border border-purple-500/30'
+                      }`}
+                    >
+                      {f.status}
+                    </span>
+                  </div>
+                  <h3 className="font-bold text-base text-slate-100 mb-1">
+                    {f.seed && <span className="text-orange-400 mr-1.5">#{f.seed}</span>}
                     {f.name}
                   </h3>
-                  <p className="text-xs text-orange-400 font-semibold mb-2">{f.status}</p>
-                  <p className="text-xs text-slate-400 mb-3">{f.bio}</p>
+                  <p className="text-xs text-slate-400 leading-relaxed mb-3">{f.bio}</p>
                 </div>
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-1 mt-auto">
                   {f.attributes.map((attr, idx) => (
-                    <span key={idx} className="bg-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded">
+                    <span
+                      key={idx}
+                      className="bg-purple-950/60 text-purple-300 border border-purple-800/40 text-[10px] px-2 py-0.5 rounded-md font-medium"
+                    >
                       {attr}
                     </span>
                   ))}
