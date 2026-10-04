@@ -61,8 +61,8 @@ export default function App() {
   return (
     <div className="min-h-screen text-slate-100 font-sans pb-0 flex flex-col justify-between bg-slate-950 selection:bg-orange-500 selection:text-slate-950">
       <div>
-        {/* Sticky Top Navigation */}
-        <header className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-md border-b border-purple-900/40 shadow-lg shadow-purple-950/20">
+        {/* Sticky Top Header */}
+        <header className="sticky top-0 z-50 bg-slate-950/95 backdrop-blur-md border-b border-purple-900/40 shadow-lg shadow-purple-950/30">
           <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
             
             {/* Logo */}
@@ -80,8 +80,8 @@ export default function App() {
               </div>
             </div>
 
-            {/* Main Mode Tabs */}
-            <nav className="flex items-center bg-slate-900/80 p-1 rounded-xl border border-purple-900/40">
+            {/* Navigation Mode Switcher */}
+            <nav className="flex items-center bg-slate-900/90 p-1 rounded-xl border border-purple-900/40">
               <button
                 onClick={() => setActiveTab('bracket')}
                 className={`py-1.5 px-3 sm:px-4 rounded-lg font-bold transition-all text-xs sm:text-sm flex items-center gap-2 ${
@@ -91,7 +91,7 @@ export default function App() {
                 }`}
               >
                 <span>⚔️</span>
-                <span>Bracket</span>
+                <span>Matchups</span>
               </button>
               <button
                 onClick={() => setActiveTab('roster')}
@@ -106,7 +106,7 @@ export default function App() {
               </button>
             </nav>
 
-            {/* Quick Vote */}
+            {/* Vote Action */}
             <a
               href={tournamentData.activeVotingUrl}
               target="_blank"
@@ -119,26 +119,28 @@ export default function App() {
           </div>
         </header>
 
-        {/* Dashboard Stat Strip */}
-        <div className="bg-gradient-to-b from-purple-950/40 to-slate-950 border-b border-purple-900/30 py-6 px-4">
+        {/* Dashboard Stat Bar */}
+        <div className="bg-gradient-to-b from-purple-950/40 via-slate-950/80 to-slate-950 border-b border-purple-900/30 py-5 px-4">
           <div className="max-w-6xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-            <div className="bg-slate-900/60 border border-purple-900/30 rounded-xl p-3 backdrop-blur">
-              <span className="text-xs font-semibold text-purple-400 uppercase tracking-wider block">Round</span>
-              <span className="text-xl font-black text-orange-400">{tournamentData.activeRound}</span>
+            <div className="bg-slate-900/70 border border-purple-900/40 rounded-xl p-3 shadow-md">
+              <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest block mb-0.5">Active Round</span>
+              <span className="text-lg font-black text-orange-400">{tournamentData.activeRound}</span>
             </div>
-            <div className="bg-slate-900/60 border border-purple-900/30 rounded-xl p-3 backdrop-blur">
-              <span className="text-xs font-semibold text-purple-400 uppercase tracking-wider block">Total Battles</span>
-              <span className="text-xl font-black text-amber-300">16 Matchups</span>
+            <div className="bg-slate-900/70 border border-purple-900/40 rounded-xl p-3 shadow-md">
+              <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest block mb-0.5">Round Matches</span>
+              <span className="text-lg font-black text-amber-300">
+                {tournamentData.rounds[selectedRound]?.matchups.length || 0} Battles
+              </span>
             </div>
-            <div className="bg-slate-900/60 border border-purple-900/30 rounded-xl p-3 backdrop-blur">
-              <span className="text-xs font-semibold text-purple-400 uppercase tracking-wider block">Active Roster</span>
-              <span className="text-xl font-black text-purple-300">32 Combatants</span>
+            <div className="bg-slate-900/70 border border-purple-900/40 rounded-xl p-3 shadow-md">
+              <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest block mb-0.5">Roster Count</span>
+              <span className="text-lg font-black text-purple-300">32 Fighters</span>
             </div>
-            <div className="bg-slate-900/60 border border-purple-900/30 rounded-xl p-3 backdrop-blur">
-              <span className="text-xs font-semibold text-purple-400 uppercase tracking-wider block">Status</span>
-              <span className="text-xl font-black text-emerald-400 flex items-center justify-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping inline-block"></span>
-                Voting Live
+            <div className="bg-slate-900/70 border border-purple-900/40 rounded-xl p-3 shadow-md">
+              <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest block mb-0.5">Voting Status</span>
+              <span className="text-lg font-black text-emerald-400 flex items-center justify-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block"></span>
+                Live
               </span>
             </div>
           </div>
@@ -148,16 +150,16 @@ export default function App() {
         <main className="max-w-6xl mx-auto px-4 py-8">
           {activeTab === 'bracket' && (
             <div>
-              {/* Round Selector Bar */}
-              <div className="flex items-center justify-between mb-6 pb-3 border-b border-purple-900/40">
+              {/* Round Switcher Tabs */}
+              <div className="flex items-center justify-between mb-8 pb-3 border-b border-purple-900/40">
                 <div className="flex space-x-2">
                   {tournamentData.rounds.map((round, idx) => (
                     <button
                       key={round.roundNumber}
                       onClick={() => setSelectedRound(idx)}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold tracking-wider uppercase transition-all ${
+                      className={`px-4 py-2 rounded-xl text-xs font-extrabold tracking-wider uppercase transition-all ${
                         selectedRound === idx
-                          ? 'bg-orange-500 text-slate-950 font-black shadow-md glow-orange'
+                          ? 'bg-orange-500 text-slate-950 shadow-lg glow-orange'
                           : 'bg-slate-900/80 text-purple-300 border border-purple-900/40 hover:bg-purple-950/60'
                       }`}
                     >
@@ -175,8 +177,8 @@ export default function App() {
                 </a>
               </div>
 
-              {/* Matchups Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Matchups Grid - Each Matchup in an Isolated Card Box */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {tournamentData.rounds[selectedRound].matchups.map((match) => {
                   const fA = getFighter(match.fighterAId);
                   const fB = getFighter(match.fighterBId);
@@ -189,28 +191,28 @@ export default function App() {
                   return (
                     <div
                       key={match.id}
-                      className="bg-slate-900/90 border border-purple-900/50 hover:border-orange-500/50 rounded-2xl p-4 transition-all duration-300 shadow-xl relative overflow-hidden group"
+                      className="bg-slate-900/90 border-2 border-purple-900/60 hover:border-orange-500/60 rounded-2xl p-5 shadow-2xl transition-all duration-300 hover:shadow-purple-950/50 flex flex-col justify-between"
                     >
-                      {/* Top Match Header */}
-                      <div className="flex justify-between items-center mb-3 text-xs">
-                        <span className="font-extrabold text-orange-400 tracking-wider uppercase">
+                      {/* Box Top Banner */}
+                      <div className="flex justify-between items-center mb-4 pb-2.5 border-b border-purple-900/40">
+                        <span className="font-black text-sm text-orange-400 uppercase tracking-wide">
                           {match.matchTitle}
                         </span>
-                        <span className="bg-purple-950 text-purple-300 border border-purple-800/40 text-[10px] px-2 py-0.5 rounded-md font-mono">
+                        <span className="bg-purple-950 text-purple-300 border border-purple-800/50 text-[11px] px-2.5 py-0.5 rounded-md font-mono">
                           📍 {match.location}
                         </span>
                       </div>
 
-                      {/* Combatant Cards */}
-                      <div className="space-y-2">
-                        {/* Fighter A */}
-                        <div className={`p-3 rounded-xl border transition-all ${
+                      {/* Box Content - Fighter Panels */}
+                      <div className="space-y-3 my-auto">
+                        {/* Fighter A Box */}
+                        <div className={`p-3.5 rounded-xl border transition-all ${
                           scoreA > scoreB 
-                            ? 'bg-purple-950/40 border-orange-500/40 shadow-inner' 
-                            : 'bg-slate-950/80 border-purple-900/30'
+                            ? 'bg-purple-950/50 border-orange-500/50 shadow-inner' 
+                            : 'bg-slate-950/90 border-purple-900/40'
                         }`}>
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-3.5">
                               <span className="text-3xl filter drop-shadow">{fA.image}</span>
                               <div>
                                 <div className="flex items-center gap-1.5">
@@ -224,7 +226,7 @@ export default function App() {
                                 </p>
                               </div>
                             </div>
-                            <div className="text-right">
+                            <div className="text-right pl-2">
                               <span className="text-xl font-black font-mono text-amber-400 block leading-none">
                                 {scoreA}
                               </span>
@@ -233,25 +235,25 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* Visual VS Bar */}
-                        <div className="relative my-1">
-                          <div className="h-1.5 w-full bg-slate-950 rounded-full overflow-hidden flex border border-purple-900/30">
+                        {/* Visual Vote Progress Bar */}
+                        <div className="relative my-2">
+                          <div className="h-2 w-full bg-slate-950 rounded-full overflow-hidden flex border border-purple-900/40">
                             <div style={{ width: `${pctA}%` }} className="bg-gradient-to-r from-orange-500 to-amber-400 h-full transition-all duration-500"></div>
                             <div style={{ width: `${pctB}%` }} className="bg-gradient-to-r from-purple-600 to-indigo-500 h-full transition-all duration-500"></div>
                           </div>
-                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-950 px-2 text-[9px] font-black text-purple-400 border border-purple-900/50 rounded-full uppercase">
+                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-950 px-2 py-0.5 text-[9px] font-black text-purple-400 border border-purple-900/60 rounded-full uppercase">
                             VS
                           </div>
                         </div>
 
-                        {/* Fighter B */}
-                        <div className={`p-3 rounded-xl border transition-all ${
+                        {/* Fighter B Box */}
+                        <div className={`p-3.5 rounded-xl border transition-all ${
                           scoreB > scoreA 
-                            ? 'bg-purple-950/40 border-orange-500/40 shadow-inner' 
-                            : 'bg-slate-950/80 border-purple-900/30'
+                            ? 'bg-purple-950/50 border-orange-500/50 shadow-inner' 
+                            : 'bg-slate-950/90 border-purple-900/40'
                         }`}>
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-3.5">
                               <span className="text-3xl filter drop-shadow">{fB.image}</span>
                               <div>
                                 <div className="flex items-center gap-1.5">
@@ -265,7 +267,7 @@ export default function App() {
                                 </p>
                               </div>
                             </div>
-                            <div className="text-right">
+                            <div className="text-right pl-2">
                               <span className="text-xl font-black font-mono text-amber-400 block leading-none">
                                 {scoreB}
                               </span>
@@ -283,7 +285,7 @@ export default function App() {
 
           {activeTab === 'roster' && (
             <div>
-              {/* Search & Filter Controls */}
+              {/* Search & Status Filter Controls */}
               <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6 bg-slate-900/80 p-3.5 rounded-2xl border border-purple-900/40 shadow-lg">
                 <div className="relative w-full sm:w-72">
                   <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 text-xs">🔍</span>
@@ -325,7 +327,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Roster Cards */}
+              {/* Roster Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {filteredFighters.map((f) => (
                   <div
