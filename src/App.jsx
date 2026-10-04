@@ -32,56 +32,81 @@ export default function App() {
   const getFighter = (id) => tournamentData.fighters.find((f) => f.id === id);
 
   return (
-    <div className="min-h-screen text-slate-100 font-sans p-4 md:p-8">
-      {/* Header & Banner */}
-      <header className="max-w-6xl mx-auto text-center mb-10 pt-4">
-        <div className="inline-block px-3 py-1 rounded-full bg-purple-950/80 border border-purple-500/30 text-purple-300 text-xs font-semibold tracking-wider uppercase mb-3 glow-purple">
-          👻 {tournamentData.activeRound} • Voting Open
-        </div>
-        <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-300 to-purple-400 text-glow-orange">
-          {tournamentData.tournamentName}
-        </h1>
-        <p className="text-purple-300/70 text-sm md:text-base mb-6 font-medium">
-          Deadline: Midnight on Halloween (October 31, 2026)
-        </p>
+    <div className="min-h-screen text-slate-100 font-sans pb-12">
+      {/* Top Navbar Header */}
+      <header className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-md border-b border-purple-900/50 shadow-lg shadow-purple-950/20">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+          
+          {/* Logo & Title */}
+          <div className="flex items-center space-x-3">
+            <span className="text-2xl filter drop-shadow">🎃</span>
+            <div>
+              <h1 className="text-lg font-black tracking-wider text-orange-400 uppercase leading-none">
+                Spooktacular Superfight
+              </h1>
+              <span className="text-[10px] font-bold text-purple-400 tracking-widest uppercase">
+                {tournamentData.tournamentName}
+              </span>
+            </div>
+          </div>
 
-        <a
-          href={tournamentData.activeVotingUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-slate-950 font-extrabold py-3.5 px-8 rounded-full shadow-lg glow-orange transition-all duration-300 transform hover:-translate-y-0.5 text-lg"
-        >
-          <span>🗳️</span>
-          <span>Cast Your Ballot Now</span>
-        </a>
+          {/* Navigation Tabs */}
+          <nav className="flex items-center space-x-1 sm:space-x-2">
+            <button
+              onClick={() => setActiveTab('bracket')}
+              className={`py-1.5 px-4 rounded-lg font-bold transition-all text-xs sm:text-sm ${
+                activeTab === 'bracket'
+                  ? 'bg-purple-900/80 text-orange-400 border border-orange-500/40 glow-orange'
+                  : 'text-slate-400 hover:text-purple-300 hover:bg-slate-900'
+              }`}
+            >
+              ⚔️ Sweet Sixteen
+            </button>
+            <button
+              onClick={() => setActiveTab('roster')}
+              className={`py-1.5 px-4 rounded-lg font-bold transition-all text-xs sm:text-sm ${
+                activeTab === 'roster'
+                  ? 'bg-purple-900/80 text-orange-400 border border-orange-500/40 glow-orange'
+                  : 'text-slate-400 hover:text-purple-300 hover:bg-slate-900'
+              }`}
+            >
+              📜 All 32 Combatants
+            </button>
+          </nav>
+
+          {/* Live Action Button */}
+          <div className="flex items-center space-x-3">
+            <a
+              href={tournamentData.activeVotingUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-slate-950 font-black py-1.5 px-4 rounded-full text-xs tracking-wider uppercase shadow-md glow-orange transition-all duration-200 transform hover:scale-105"
+            >
+              🗳️ Vote Now
+            </a>
+          </div>
+
+        </div>
       </header>
 
-      {/* Navigation */}
-      <div className="max-w-6xl mx-auto flex justify-center space-x-3 mb-10">
-        <button
-          onClick={() => setActiveTab('bracket')}
-          className={`py-2.5 px-6 rounded-xl font-bold transition-all text-sm ${
-            activeTab === 'bracket'
-              ? 'bg-gradient-to-r from-purple-900 to-slate-900 text-orange-400 border border-orange-500/50 glow-orange'
-              : 'bg-slate-950/60 text-slate-400 hover:text-purple-300 border border-purple-900/30'
-          }`}
-        >
-          ⚔️ Sweet Sixteen
-        </button>
-        <button
-          onClick={() => setActiveTab('roster')}
-          className={`py-2.5 px-6 rounded-xl font-bold transition-all text-sm ${
-            activeTab === 'roster'
-              ? 'bg-gradient-to-r from-purple-900 to-slate-900 text-orange-400 border border-orange-500/50 glow-orange'
-              : 'bg-slate-950/60 text-slate-400 hover:text-purple-300 border border-purple-900/30'
-          }`}
-        >
-          📜 All 32 Combatants
-        </button>
-      </div>
+      {/* Main Banner / Hero Section */}
+      <section className="max-w-6xl mx-auto text-center mt-8 mb-10 px-4">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-950/80 border border-purple-500/30 text-purple-300 text-xs font-semibold tracking-wider uppercase mb-4 glow-purple">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>Active Round: {tournamentData.activeRound}</span>
+        </div>
+        
+        <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-3 text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-300 to-purple-400 text-glow-orange">
+          The Ultimate Halloween Bracket
+        </h2>
+        
+        <p className="text-purple-300/70 text-sm md:text-base max-w-xl mx-auto font-medium">
+          Cast your votes in the Google Form to crown the 2026 Champion. Scores update dynamically throughout the round!
+        </p>
+      </section>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto">
+      <main className="max-w-6xl mx-auto px-4">
         {activeTab === 'bracket' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {tournamentData.rounds[0].matchups.map((match) => {
