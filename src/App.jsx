@@ -1,26 +1,97 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import tournamentData from './data/tournament.json';
+
+// Insert your published Google Sheet CSV URLs here
+const CONFIG_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2POPXiw_0BcgW0X60GGUk0HY8OQK-sI8LpUKPrCm7hzkgRl80oxulZdvQ9g25jZsAIKioAm08FL1g/pub?gid=0&single=true&output=csv";
+const BOONS_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2POPXiw_0BcgW0X60GGUk0HY8OQK-sI8LpUKPrCm7hzkgRl80oxulZdvQ9g25jZsAIKioAm08FL1g/pub?gid=388339265&single=true&output=csv";
+const FIGHTERS_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2POPXiw_0BcgW0X60GGUk0HY8OQK-sI8LpUKPrCm7hzkgRl80oxulZdvQ9g25jZsAIKioAm08FL1g/pub?gid=1937729440&single=true&output=csv";
+const SCORES_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2POPXiw_0BcgW0X60GGUk0HY8OQK-sI8LpUKPrCm7hzkgRl80oxulZdvQ9g25jZsAIKioAm08FL1g/pub?gid=1873253112&single=true&output=csv";
+
+// Simple CSV parser helper
+function parseCSV(text) {
+  const lines = text.split(/\r?\n/).filter((line) => line.trim() !== '');
+  if (lines.length === 0) return [];
+  const headers = lines[0].split(',').map((h) => h.trim().replace(/^"|"$/g, ''));
+  return lines.slice(1).map((line) => {
+    const values = line.split(',').map((v) => v.trim().replace(/^"|"$/g, ''));
+    const obj = {};
+    headers.forEach((h, i) => {
+      obj[h] = values[i] || '';
+    });
+    return obj;
+  });
+}
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('grid');
-  const [expandedMatch, setExpandedMatch] = useState(null);
+  const [config, setConfig] = useState({});
+  const [boons, setBoons] = useState([]);
+  const [fighters, setFighters] = useState([]);
   const [liveScores, setLiveScores] = useState({});
-  const [loadingScores, setLoadingScores] = useState(true);
+  const [loading, setLoading] = useState(true);
 
-  // Fighter Splash Modal State
   const [selectedFighter, setSelectedFighter] = useState(null);
-
-  // Carousel state for auto-rotating banner
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-
-  // Countdown Timer State
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
-  // Target voting START date (Oct 16, 2026 00:00:00)
-  const votingStartDate = useMemo(() => {
-    return new Date(tournamentData?.votingStartDate || '2026-10-16T00:00:00').getTime();
+  // Fetch all Google Sheets data on mount
+  useEffect(() => {
+    async function loadAllSheetData() {
+      try {
+        setLoading(true);
+
+        // Fetch Config, Boons, Fighters, and Scores in parallel
+        const [configRes, boonsRes, fightersRes, scoresRes] = await Promise.all([
+          fetch(CONFIG_SHEET_CSV).then((r) => r.text()),
+          fetch(BOONS_SHEET_CSV).then((r) => r.text()),
+          fetch(FIGHTERS_SHEET_CSV).then((r) => r.text()),
+          fetch(SCORES_SHEET_CSV).then((r) => r.text()),
+        ]);
+
+        // Parse Config Key-Value Pairs
+        const configRows = parseCSV(configRes);
+        const parsedConfig = {};
+        configRows.forEach((row) => {
+          if (row.Key || row.key) {
+            parsedConfig[row.Key || row.key] = row.Value || row.value;
+          }
+        });
+        setConfig(parsedConfig);
+
+        // Parse Boons
+        const boonsData = parseCSV(boonsRes);
+        setBoons(boonsData);
+
+        // Parse Fighters
+        const fightersData = parseCSV(fightersRes).map((f) => ({
+          ...f,
+          attributes: f.attributes ? f.attributes.split(',').map((a) => a.trim()) : [],
+        }));
+        setFighters(fightersData);
+
+        // Parse Live Scores
+        const scoreRows = parseCSV(scoresRes);
+        const parsedScores = {};
+        scoreRows.forEach((row) => {
+          const key = (row.fighterId || row.id || Object.values(row)[0] || '').toLowerCase();
+          const val = parseInt(row.votes || row.score || Object.values(row)[1] || '0', 10);
+          if (key && !isNaN(val)) parsedScores[key] = val;
+        });
+        setLiveScores(parsedScores);
+      } catch (err) {
+        console.error('Error loading Google Sheet data:', err);
+      } font-bold {
+        setLoading(false);
+      }
+    }
+
+    loadAllSheetData();
   }, []);
+
+  // Target voting start date from dynamic config
+  const votingStartDate = useMemo(() => {
+    return new Date(config.votingStartDate || '2026-10-16T00:00:00').getTime();
+  }, [config.votingStartDate]);
 
   // Live Countdown Effect
   useEffect(() => {
@@ -46,155 +117,13 @@ export default function App() {
     return () => clearInterval(interval);
   }, [votingStartDate]);
 
-  // Fetch Live Scores from Google Sheet CSV
-  useEffect(() => {
-    async function fetchScores() {
-      if (!tournamentData?.googleSheetCsvUrl) {
-        setLoadingScores(false);
-        return;
-      }
-
-      try {
-        const response = await fetch(tournamentData.googleSheetCsvUrl);
-        const csvText = await response.text();
-
-        const lines = csvText.split(/\r?\n/);
-        const parsedScores = {};
-
-        lines.forEach((line) => {
-          const columns = line.split(',').map((col) => col.trim().replace(/^"|"$/g, ''));
-
-          if (columns.length >= 2) {
-            const key = columns[0].toLowerCase();
-            const val = parseInt(columns[1], 10);
-            if (!isNaN(val)) {
-              parsedScores[key] = val;
-            }
-          }
-        });
-
-        setLiveScores(parsedScores);
-      } catch (err) {
-        console.error('Failed to load live scores from Google Sheets:', err);
-      } finally {
-        setLoadingScores(false);
-      }
-    }
-
-    fetchScores();
-  }, []);
-
-  // Listen for Escape key to close modal
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        setSelectedFighter(null);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  const toggleMatchDetails = (matchId) => {
-    setExpandedMatch(expandedMatch === matchId ? null : matchId);
-  };
-
-  // Helper map to look up fighters by ID
-  const fightersById = useMemo(() => {
-    const map = {};
-    if (tournamentData?.fighters) {
-      tournamentData.fighters.forEach((f) => {
-        map[f.id] = f;
-      });
-    }
-    return map;
-  }, []);
-
-  // Compute round matchups with live lead calculations
-  const activeMatchups = useMemo(() => {
-    const rawMatchups = tournamentData?.rounds?.[0]?.matchups || [];
-    return rawMatchups.map((m) => {
-      const fA = fightersById[m.fighterAId] || { name: m.fighterAId, image: '❓' };
-      const fB = fightersById[m.fighterBId] || { name: m.fighterBId, image: '❓' };
-
-      const scoreA = liveScores[m.fighterAId?.toLowerCase()] ?? fA.votes ?? 0;
-      const scoreB = liveScores[m.fighterBId?.toLowerCase()] ?? fB.votes ?? 0;
-
-      const isATied = scoreA === scoreB;
-      const isALeading = scoreA > scoreB;
-      const isBLeading = scoreB > scoreA;
-
-      return {
-        ...m,
-        isTied: isATied,
-        fighter1: { ...fA, currentScore: scoreA, isLeading: isALeading },
-        fighter2: { ...fB, currentScore: scoreB, isLeading: isBLeading },
-      };
-    });
-  }, [fightersById, liveScores]);
-
-  // Auto-rotate banner every 8 seconds (8000ms), pausing on hover or manual interaction
-  useEffect(() => {
-    if (activeMatchups.length === 0 || isPaused) return;
-
-    const timer = setInterval(() => {
-      setCurrentMatchIndex((prevIndex) => (prevIndex + 1) % activeMatchups.length);
-    }, 8000);
-
-    return () => clearInterval(timer);
-  }, [activeMatchups.length, isPaused]);
-
-  const rounds = [
-    {
-      id: 'sweet-16',
-      name: 'SWEET SIXTEEN',
-      date: 'Oct 16 – Oct 20',
-      status: 'active',
-      matchups: activeMatchups,
-    },
-    {
-      id: 'elite-eight',
-      name: 'ELITE EIGHT',
-      date: 'Oct 22 – Oct 25',
-      status: 'locked',
-    },
-    {
-      id: 'final-four',
-      name: 'FINAL FOUR',
-      date: 'Oct 26 – Oct 29',
-      status: 'locked',
-    },
-    {
-      id: 'championship',
-      name: 'CHAMPIONSHIP',
-      date: 'Oct 30 – Oct 31',
-      status: 'locked',
-    },
-  ];
-
-  // Dynamically load boons directly from JSON schema
-  const boonsList = tournamentData?.boons || [];
-
-  const votingUrl = tournamentData?.activeVotingUrl || '#';
-  const activeRoundName = tournamentData?.activeRound || 'Sweet Sixteen';
-
-  // Currently displayed banner matchup
-  const activeBannerMatch = activeMatchups[currentMatchIndex] || activeMatchups[0];
-
-  const handlePrevBanner = () => {
-    setIsPaused(true);
-    setCurrentMatchIndex((prev) => (prev - 1 + activeMatchups.length) % activeMatchups.length);
-  };
-
-  const handleNextBanner = () => {
-    setIsPaused(true);
-    setCurrentMatchIndex((prev) => (prev + 1) % activeMatchups.length);
-  };
-
-  const handleSelectDot = (idx) => {
-    setIsPaused(true);
-    setCurrentMatchIndex(idx);
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0B0E17] text-orange-500 flex items-center justify-center font-bold font-mono">
+        ⏳ Loading tournament data live from Google Sheets...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0B0E17] text-slate-100 font-sans flex flex-col relative">
@@ -206,7 +135,7 @@ export default function App() {
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-black tracking-wide text-orange-500 uppercase">
-              {tournamentData?.tournamentName || 'OCTOBER MADNESS 2026'}
+              {config.tournamentName || 'OCTOBER MADNESS 2026'}
             </h1>
             <p className="text-xs text-slate-400 font-medium">
               Culminating Midnight on Halloween 2026
@@ -218,11 +147,11 @@ export default function App() {
           <div className="flex items-center gap-2 bg-[#191F2E] border border-purple-500/30 text-purple-300 text-xs px-3.5 py-2 rounded-lg font-medium">
             <span>📅</span>
             <span>
-              Active Round: <strong className="text-purple-200">{activeRoundName}</strong> (Oct 16–20)
+              Active Round: <strong className="text-purple-200">{config.activeRound || 'Sweet Sixteen'}</strong>
             </span>
           </div>
           <a
-            href={votingUrl}
+            href={config.activeVotingUrl || '#'}
             target="_blank"
             rel="noreferrer"
             className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all shadow-md shadow-orange-500/20 active:scale-95"
@@ -232,11 +161,11 @@ export default function App() {
         </div>
       </header>
 
-      {/* ALERT BANNER: COUNTDOWN TIMER TO VOTING START */}
+      {/* ALERT BANNER: COUNTDOWN TIMER */}
       <div className="bg-[#2A1508] border-b border-orange-900/40 text-orange-400 text-xs py-2.5 px-4 text-center font-medium flex flex-wrap items-center justify-center gap-2 sm:gap-3">
         <span className="text-sm">⏳</span>
         <span>
-          <strong>{activeRoundName}</strong> Voting Session Opens In:
+          <strong>{config.activeRound || 'Sweet Sixteen'}</strong> Voting Session Opens In:
         </span>
         <div className="flex items-center gap-1 font-mono font-bold text-orange-300 bg-black/40 px-2.5 py-1 rounded-md border border-orange-500/30 text-xs">
           <span>{String(timeLeft.days).padStart(2, '0')}d</span>:
@@ -245,7 +174,7 @@ export default function App() {
           <span>{String(timeLeft.seconds).padStart(2, '0')}s</span>
         </div>
         <a
-          href={votingUrl}
+          href={config.activeVotingUrl || '#'}
           target="_blank"
           rel="noreferrer"
           className="underline font-bold text-orange-300 hover:text-orange-200 ml-1 inline-flex items-center gap-0.5"
@@ -268,16 +197,6 @@ export default function App() {
             🔥 Current Round Grid
           </button>
           <button
-            onClick={() => setActiveTab('bracket')}
-            className={`pb-3 transition-colors ${
-              activeTab === 'bracket'
-                ? 'border-b-2 border-orange-500 text-orange-500 font-bold'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Interactive Bracket
-          </button>
-          <button
             onClick={() => setActiveTab('boons')}
             className={`pb-3 transition-colors ${
               activeTab === 'boons'
@@ -285,7 +204,7 @@ export default function App() {
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            🧙‍♂️ Boons & Perks ({boonsList.length})
+            🧙‍♂️️ Boons & Perks ({boons.length})
           </button>
           <button
             onClick={() => setActiveTab('vault')}
@@ -295,743 +214,71 @@ export default function App() {
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            Fighter Vault ({tournamentData?.fighters?.length || 32})
-          </button>
-          <button
-            onClick={() => setActiveTab('hazards')}
-            className={`pb-3 transition-colors ${
-              activeTab === 'hazards'
-                ? 'border-b-2 border-orange-500 text-orange-500 font-bold'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Locations & Hazards
+            Fighter Vault ({fighters.length})
           </button>
         </div>
       </nav>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 overflow-x-auto p-4 md:p-8">
-        {/* LANDING PAGE GRID VIEW */}
-        {activeTab === 'grid' && (
-          <div className="max-w-7xl mx-auto space-y-8">
-            {/* ROTATING MATCHUP BANNER */}
-            {activeBannerMatch && (
+      <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
+        {/* BOONS TAB */}
+        {activeTab === 'boons' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {boons.map((boon) => (
               <div
-                onMouseEnter={() => setIsPaused(true)}
-                onMouseLeave={() => setIsPaused(false)}
-                className="bg-gradient-to-r from-[#1A0F26] via-[#161B26] to-[#261208] border border-orange-500/40 rounded-2xl p-6 shadow-2xl relative overflow-hidden transition-all duration-500"
+                key={boon.id}
+                className="bg-[#161B26] border border-slate-800/90 rounded-2xl p-5 shadow-xl flex flex-col justify-between space-y-4"
               >
-                {/* Top Badge & Status Controls */}
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="bg-orange-500 text-black font-black text-[10px] tracking-widest px-3 py-1 rounded-full uppercase">
-                      SPOTLIGHT BATTLE ({currentMatchIndex + 1}/{activeMatchups.length})
-                    </span>
-                    {isPaused && (
-                      <span className="text-[9px] bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-full font-mono uppercase font-semibold">
-                        ⏸ PAUSED
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Manual Nav Controls */}
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={handlePrevBanner}
-                      className="w-7 h-7 bg-[#0D1117]/80 hover:bg-orange-500 hover:text-black border border-slate-700 text-slate-300 rounded-full flex items-center justify-center text-xs transition-colors"
-                      title="Previous Match"
-                    >
-                      ◀
-                    </button>
-                    <button
-                      onClick={handleNextBanner}
-                      className="w-7 h-7 bg-[#0D1117]/80 hover:bg-orange-500 hover:text-black border border-slate-700 text-slate-300 rounded-full flex items-center justify-center text-xs transition-colors"
-                      title="Next Match"
-                    >
-                      ▶
-                    </button>
-                  </div>
-                </div>
-
-                <div className="text-center mb-4">
-                  <span className="text-xs font-bold text-orange-400 tracking-widest uppercase">
-                    {activeRoundName} • Matchup {activeBannerMatch.id.toUpperCase()}
+                <div className="flex items-center justify-between">
+                  <span className="text-4xl p-2 bg-[#0D1117] border border-slate-800 rounded-xl">
+                    {boon.icon || '✨'}
                   </span>
-                  <h2 className="text-lg sm:text-xl font-black text-slate-100 mt-0.5">
-                    {activeBannerMatch.fighter1.name}{' '}
-                    <span className="text-orange-500 font-mono">VS</span>{' '}
-                    {activeBannerMatch.fighter2.name}
-                  </h2>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                  {/* Contestant 1 */}
-                  <div
-                    onClick={() => setSelectedFighter(activeBannerMatch.fighter1)}
-                    className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer hover:scale-[1.01] ${
-                      activeBannerMatch.fighter1.isLeading
-                        ? 'bg-[#1C1610] border-orange-500/80 shadow-lg shadow-orange-950/40'
-                        : 'bg-[#0D1117]/80 border-slate-800 hover:border-slate-700'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-3xl sm:text-4xl">
-                        {activeBannerMatch.fighter1.image}
-                      </span>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-bold text-slate-100 text-sm sm:text-base">
-                            {activeBannerMatch.fighter1.name}
-                          </h3>
-                          {activeBannerMatch.fighter1.isLeading && (
-                            <span className="text-[9px] bg-orange-500/20 text-orange-400 border border-orange-500/40 px-1.5 py-0.5 rounded font-mono font-bold uppercase">
-                              IN LEAD
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-slate-400">
-                          Seed #{activeBannerMatch.fighter1.seed}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-base sm:text-lg font-mono font-extrabold text-orange-400">
-                      {loadingScores ? '...' : `${activeBannerMatch.fighter1.currentScore} pts`}
-                    </span>
-                  </div>
-
-                  {/* Contestant 2 */}
-                  <div
-                    onClick={() => setSelectedFighter(activeBannerMatch.fighter2)}
-                    className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer hover:scale-[1.01] ${
-                      activeBannerMatch.fighter2.isLeading
-                        ? 'bg-[#1C1610] border-orange-500/80 shadow-lg shadow-orange-950/40'
-                        : 'bg-[#0D1117]/80 border-slate-800 hover:border-slate-700'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-3xl sm:text-4xl">
-                        {activeBannerMatch.fighter2.image}
-                      </span>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-bold text-slate-100 text-sm sm:text-base">
-                            {activeBannerMatch.fighter2.name}
-                          </h3>
-                          {activeBannerMatch.fighter2.isLeading && (
-                            <span className="text-[9px] bg-orange-500/20 text-orange-400 border border-orange-500/40 px-1.5 py-0.5 rounded font-mono font-bold uppercase">
-                              IN LEAD
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-slate-400">
-                          Seed #{activeBannerMatch.fighter2.seed}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-base sm:text-lg font-mono font-extrabold text-orange-400">
-                      {loadingScores ? '...' : `${activeBannerMatch.fighter2.currentScore} pts`}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between text-xs gap-2">
-                  <span className="text-purple-300 font-medium flex items-center gap-1.5">
-                    <span>📍 Arena:</span> {activeBannerMatch.location}
+                  <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-full uppercase bg-purple-950/50 text-purple-300 border border-purple-500/50">
+                    {boon.rarity || 'Common'}
                   </span>
-
-                  {/* Carousel Progress Dots */}
-                  <div className="flex items-center gap-1.5 my-1">
-                    {activeMatchups.map((_, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => handleSelectDot(idx)}
-                        className={`h-1.5 rounded-full transition-all ${
-                          idx === currentMatchIndex
-                            ? 'w-5 bg-orange-500'
-                            : 'w-1.5 bg-slate-700 hover:bg-slate-500'
-                        }`}
-                        title={`Go to match ${idx + 1}`}
-                      />
-                    ))}
-                  </div>
-
-                  <a
-                    href={votingUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-1.5 rounded-lg transition-all shadow-md shadow-orange-500/20 active:scale-95"
-                  >
-                    Cast Your Vote ↗
-                  </a>
                 </div>
-              </div>
-            )}
-
-            {/* GRID HEADER */}
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div>
-                <h2 className="text-xl font-black text-orange-500 tracking-wide uppercase">
-                  {activeRoundName} Battles ({activeMatchups.length})
-                </h2>
-                <p className="text-xs text-slate-400 font-medium">
-                  Live scores update dynamically from Google Sheets.
+                <div>
+                  <h3 className="text-base font-bold text-slate-100">{boon.name}</h3>
+                  <p className="text-[11px] font-mono font-semibold text-purple-400 mt-0.5">
+                    {boon.type}
+                  </p>
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed bg-[#0D1117]/60 border border-slate-800/80 rounded-xl p-3">
+                  {boon.effect}
                 </p>
-              </div>
-              <a
-                href={votingUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="hidden sm:inline-flex bg-[#191F2E] border border-orange-500/40 text-orange-400 hover:bg-orange-950/40 font-bold text-xs px-3.5 py-2 rounded-lg items-center gap-1.5 transition-all"
-              >
-                <span>📝</span> Open Full Ballot
-              </a>
-            </div>
-
-            {/* MATCHUPS GRID */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {activeMatchups.map((match) => {
-                const isExpanded = expandedMatch === match.id;
-                return (
-                  <div
-                    key={match.id}
-                    className="bg-[#161B26] border border-slate-800/90 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-slate-700 transition-all space-y-3"
-                  >
-                    {/* Card Top Row */}
-                    <div className="flex items-center justify-between text-xs font-medium text-purple-400">
-                      <span className="bg-purple-950/40 border border-purple-500/30 text-purple-300 text-[10px] font-bold px-2 py-0.5 rounded font-mono uppercase">
-                        MATCH {match.id.toUpperCase()}
-                      </span>
-                      {match.isTied ? (
-                        <span className="bg-slate-800 text-slate-400 font-mono text-[9px] px-2 py-0.5 rounded font-bold uppercase">
-                          TIED
-                        </span>
-                      ) : (
-                        <span className="text-slate-500 font-mono text-[10px] uppercase">
-                          LIVE TALLY
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Contestants List */}
-                    <div className="space-y-2">
-                      {/* Fighter 1 */}
-                      <div
-                        onClick={() => setSelectedFighter(match.fighter1)}
-                        className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer hover:scale-[1.01] ${
-                          match.fighter1.isLeading
-                            ? 'bg-[#1C1610] border-orange-500/60 shadow-md shadow-orange-950/30'
-                            : 'bg-[#0D1117] border-slate-800/60 hover:border-slate-700'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">{match.fighter1.image}</span>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span
-                                className={`text-xs font-bold ${
-                                  match.fighter1.isLeading ? 'text-orange-400' : 'text-slate-200'
-                                }`}
-                              >
-                                {match.fighter1.name}
-                              </span>
-                              {match.fighter1.isLeading && (
-                                <span className="text-[8px] bg-orange-500/20 text-orange-400 border border-orange-500/40 px-1.5 py-0.2 rounded font-mono font-bold uppercase">
-                                  IN LEAD
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-[10px] text-slate-500">
-                              Seed #{match.fighter1.seed || 'N/A'}
-                            </span>
-                          </div>
-                        </div>
-                        <span
-                          className={`text-xs font-mono font-bold ${
-                            match.fighter1.isLeading ? 'text-orange-400 text-sm' : 'text-slate-400'
-                          }`}
-                        >
-                          {loadingScores ? '...' : `${match.fighter1.currentScore} pts`}
-                        </span>
-                      </div>
-
-                      {/* Fighter 2 */}
-                      <div
-                        onClick={() => setSelectedFighter(match.fighter2)}
-                        className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer hover:scale-[1.01] ${
-                          match.fighter2.isLeading
-                            ? 'bg-[#1C1610] border-orange-500/60 shadow-md shadow-orange-950/30'
-                            : 'bg-[#0D1117] border-slate-800/60 hover:border-slate-700'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">{match.fighter2.image}</span>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span
-                                className={`text-xs font-bold ${
-                                  match.fighter2.isLeading ? 'text-orange-400' : 'text-slate-200'
-                                }`}
-                              >
-                                {match.fighter2.name}
-                              </span>
-                              {match.fighter2.isLeading && (
-                                <span className="text-[8px] bg-orange-500/20 text-orange-400 border border-orange-500/40 px-1.5 py-0.2 rounded font-mono font-bold uppercase">
-                                  IN LEAD
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-[10px] text-slate-500">
-                              Seed #{match.fighter2.seed || 'N/A'}
-                            </span>
-                          </div>
-                        </div>
-                        <span
-                          className={`text-xs font-mono font-bold ${
-                            match.fighter2.isLeading ? 'text-orange-400 text-sm' : 'text-slate-400'
-                          }`}
-                        >
-                          {loadingScores ? '...' : `${match.fighter2.currentScore} pts`}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Arena Location Tag */}
-                    <div className="flex items-center justify-center text-[11px] font-medium text-purple-300 bg-[#0D1117]/60 py-1.5 px-3 rounded-lg border border-purple-500/20">
-                      <span className="truncate flex items-center gap-1.5" title={match.location}>
-                        <span>📍</span> {match.location}
-                      </span>
-                    </div>
-
-                    {/* Expandable Attributes */}
-                    {isExpanded && (
-                      <div className="pt-2 border-t border-slate-800/80 text-[11px] bg-[#0D1117] p-3 rounded-xl space-y-2">
-                        <div>
-                          <p className="text-[10px] font-bold text-purple-300 uppercase">
-                            {match.fighter1.name} Traits:
-                          </p>
-                          <p className="text-[10px] text-slate-400">
-                            {match.fighter1.attributes?.join(', ') || 'Standard fighter skills'}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-purple-300 uppercase">
-                            {match.fighter2.name} Traits:
-                          </p>
-                          <p className="text-[10px] text-slate-400">
-                            {match.fighter2.attributes?.join(', ') || 'Standard fighter skills'}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Card Actions */}
-                    <div className="flex items-center justify-between pt-1 text-[11px]">
-                      <button
-                        onClick={() => toggleMatchDetails(match.id)}
-                        className="text-slate-400 hover:text-orange-400 font-semibold transition-colors"
-                      >
-                        {isExpanded ? 'Hide Details ▲' : 'View Traits ▼'}
-                      </button>
-                      <a
-                        href={votingUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-orange-400 font-bold hover:underline inline-flex items-center gap-1"
-                      >
-                        Vote Match {match.id.toUpperCase()} ↗
-                      </a>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* INTERACTIVE BRACKET TAB */}
-        {activeTab === 'bracket' && (
-          <div className="flex gap-6 min-w-max items-start">
-            {rounds.map((round) => (
-              <div key={round.id} className="w-80 flex flex-col gap-4">
-                <div className="border-b border-slate-800 pb-2">
-                  <h2 className="text-sm font-black tracking-wider text-orange-500 uppercase">
-                    {round.name}
-                  </h2>
-                  <p className="text-xs text-slate-500 font-medium">{round.date}</p>
+                <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] font-medium text-slate-400">
+                  <span>Applies To:</span>
+                  <span className="text-orange-400 font-bold">{boon.target}</span>
                 </div>
-
-                {round.status === 'active' && round.matchups.length > 0 ? (
-                  round.matchups.map((match) => {
-                    const isExpanded = expandedMatch === match.id;
-                    return (
-                      <div
-                        key={match.id}
-                        className="bg-[#161B26] border border-slate-800/90 rounded-xl p-3 shadow-xl flex flex-col gap-2 hover:border-slate-700/80 transition-all"
-                      >
-                        <div className="flex items-center justify-between text-[11px] font-medium text-purple-400">
-                          {match.matchTitle ? (
-                            <div className="text-[10px] font-bold text-orange-400/90 bg-orange-950/30 px-2 py-0.5 rounded border border-orange-900/30">
-                              {match.matchTitle}
-                            </div>
-                          ) : (
-                            <span />
-                          )}
-
-                          {match.isTied ? (
-                            <span className="bg-slate-800 text-slate-400 font-mono text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">
-                              TIED
-                            </span>
-                          ) : (
-                            <span className="text-slate-500 font-mono text-[10px] uppercase">
-                              {match.id}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Fighter 1 Card */}
-                        <div
-                          onClick={() => setSelectedFighter(match.fighter1)}
-                          className={`flex items-center justify-between p-2.5 rounded-lg border transition-all cursor-pointer hover:scale-[1.01] ${
-                            match.fighter1.isLeading
-                              ? 'bg-[#1C1610] border-orange-500/60 shadow-md shadow-orange-950/30'
-                              : 'bg-[#0D1117] border-slate-800/50 opacity-85 hover:border-slate-700'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">{match.fighter1.image}</span>
-                            <div>
-                              <div className="flex items-center gap-1.5">
-                                <span
-                                  className={`text-xs font-bold ${
-                                    match.fighter1.isLeading ? 'text-orange-400' : 'text-slate-200'
-                                  }`}
-                                >
-                                  {match.fighter1.name}
-                                </span>
-                                {match.fighter1.isLeading && (
-                                  <span className="text-[8px] bg-orange-500/20 text-orange-400 border border-orange-500/40 px-1 py-0.2 rounded font-mono font-bold uppercase">
-                                    IN LEAD
-                                  </span>
-                                )}
-                              </div>
-                              {match.fighter1.seed && (
-                                <span className="text-[9px] text-slate-500">
-                                  Seed #{match.fighter1.seed}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <span
-                            className={`text-xs font-mono font-bold ${
-                              match.fighter1.isLeading ? 'text-orange-400 text-sm' : 'text-slate-400'
-                            }`}
-                          >
-                            {loadingScores ? '...' : `${match.fighter1.currentScore} pts`}
-                          </span>
-                        </div>
-
-                        {/* Fighter 2 Card */}
-                        <div
-                          onClick={() => setSelectedFighter(match.fighter2)}
-                          className={`flex items-center justify-between p-2.5 rounded-lg border transition-all cursor-pointer hover:scale-[1.01] ${
-                            match.fighter2.isLeading
-                              ? 'bg-[#1C1610] border-orange-500/60 shadow-md shadow-orange-950/30'
-                              : 'bg-[#0D1117] border-slate-800/50 opacity-85 hover:border-slate-700'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">{match.fighter2.image}</span>
-                            <div>
-                              <div className="flex items-center gap-1.5">
-                                <span
-                                  className={`text-xs font-bold ${
-                                    match.fighter2.isLeading ? 'text-orange-400' : 'text-slate-200'
-                                  }`}
-                                >
-                                  {match.fighter2.name}
-                                </span>
-                                {match.fighter2.isLeading && (
-                                  <span className="text-[8px] bg-orange-500/20 text-orange-400 border border-orange-500/40 px-1 py-0.2 rounded font-mono font-bold uppercase">
-                                    IN LEAD
-                                  </span>
-                                )}
-                              </div>
-                              {match.fighter2.seed && (
-                                <span className="text-[9px] text-slate-500">
-                                  Seed #{match.fighter2.seed}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <span
-                            className={`text-xs font-mono font-bold ${
-                              match.fighter2.isLeading ? 'text-orange-400 text-sm' : 'text-slate-400'
-                            }`}
-                          >
-                            {loadingScores ? '...' : `${match.fighter2.currentScore} pts`}
-                          </span>
-                        </div>
-
-                        {/* Location Tag */}
-                        <div className="flex items-center justify-center text-[11px] font-medium text-purple-400 bg-[#0D1117]/60 py-1 px-2 rounded border border-purple-500/20 mt-1">
-                          <span className="truncate flex items-center gap-1.5" title={match.location}>
-                            <span>📍</span> {match.location}
-                          </span>
-                        </div>
-
-                        {/* Toggle Details */}
-                        {isExpanded && (
-                          <div className="mt-1 pt-2 border-t border-slate-800/80 text-[11px] bg-[#0D1117] p-2.5 rounded-lg space-y-2">
-                            <div>
-                              <p className="text-[10px] font-bold text-purple-300 uppercase">
-                                {match.fighter1.name} Attributes:
-                              </p>
-                              <p className="text-[10px] text-slate-400">
-                                {match.fighter1.attributes?.join(', ') || 'Standard fighter skills'}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] font-bold text-purple-300 uppercase">
-                                {match.fighter2.name} Attributes:
-                              </p>
-                              <p className="text-[10px] text-slate-400">
-                                {match.fighter2.attributes?.join(', ') || 'Standard fighter skills'}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-
-                        <button
-                          onClick={() => toggleMatchDetails(match.id)}
-                          className="w-full text-center text-[10px] font-semibold text-slate-400 hover:text-orange-400 pt-1 transition-colors"
-                        >
-                          {isExpanded ? 'Hide Fighter Attributes ▲' : 'View Fighter Attributes ▼'}
-                        </button>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="border border-dashed border-slate-800/80 rounded-xl p-6 text-center text-xs text-slate-500 flex items-center justify-center min-h-[140px] bg-[#0D1117]/40 leading-relaxed font-medium">
-                    Matchups lock after previous round concludes
-                  </div>
-                )}
               </div>
             ))}
-          </div>
-        )}
-
-        {/* BOONS & PERKS TAB */}
-        {activeTab === 'boons' && (
-          <div className="max-w-7xl mx-auto space-y-6">
-            <div className="border-b border-slate-800 pb-3">
-              <h2 className="text-xl font-black text-orange-500 tracking-wide uppercase">
-                🧙‍♂ Tournament Boons & Perks
-              </h2>
-              <p className="text-xs text-slate-400 font-medium">
-                Active modifiers, voter power-ups, and contestant advantages for the Superfight.
-              </p>
-            </div>
-
-            {boonsList.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {boonsList.map((boon) => (
-                  <div
-                    key={boon.id}
-                    className="bg-[#161B26] border border-slate-800/90 rounded-2xl p-5 shadow-xl flex flex-col justify-between hover:border-orange-500/50 transition-all space-y-4"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-4xl p-2 bg-[#0D1117] border border-slate-800 rounded-xl">
-                          {boon.icon || '✨'}
-                        </span>
-                        <span
-                          className={`text-[10px] font-bold font-mono px-2.5 py-1 rounded-full uppercase border ${
-                            boon.rarity === 'Legendary' || boon.rarity === 'Mythic'
-                              ? 'bg-orange-950/50 text-orange-400 border-orange-500/50'
-                              : boon.rarity === 'Epic'
-                              ? 'bg-purple-950/50 text-purple-300 border-purple-500/50'
-                              : 'bg-slate-800 text-slate-300 border-slate-700'
-                          }`}
-                        >
-                          {boon.rarity || 'Common'}
-                        </span>
-                      </div>
-
-                      <div>
-                        <h3 className="text-base font-bold text-slate-100">{boon.name}</h3>
-                        <p className="text-[11px] font-mono font-semibold text-purple-400 mt-0.5">
-                          {boon.type}
-                        </p>
-                      </div>
-
-                      <p className="text-xs text-slate-300 leading-relaxed bg-[#0D1117]/60 border border-slate-800/80 rounded-xl p-3">
-                        {boon.effect}
-                      </p>
-                    </div>
-
-                    <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] font-medium text-slate-400">
-                      <span>Applies To:</span>
-                      <span className="text-orange-400 font-bold">{boon.target}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="border border-dashed border-slate-800 rounded-xl p-8 text-center text-xs text-slate-500">
-                No active tournament boons configured in `tournament.json`.
-              </div>
-            )}
           </div>
         )}
 
         {/* VAULT TAB */}
         {activeTab === 'vault' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-7xl mx-auto">
-            {tournamentData?.fighters?.map((fighter) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {fighters.map((fighter) => (
               <div
                 key={fighter.id}
                 onClick={() => setSelectedFighter(fighter)}
-                className="bg-[#161B26] border border-slate-800 rounded-xl p-4 flex flex-col justify-between shadow-lg cursor-pointer hover:border-orange-500/50 hover:scale-[1.02] transition-all"
+                className="bg-[#161B26] border border-slate-800 rounded-xl p-4 flex flex-col justify-between shadow-lg cursor-pointer hover:border-orange-500/50 transition-all"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-3xl">{fighter.image}</span>
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                        fighter.status === 'Main Bracket'
-                          ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                          : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                      }`}
-                    >
-                      {fighter.status}
+                    <span className="text-3xl">{fighter.image || '❓'}</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                      {fighter.status || 'Contestant'}
                     </span>
                   </div>
                   <h3 className="text-sm font-bold text-slate-100">{fighter.name}</h3>
                   <p className="text-xs text-slate-400 mt-1 line-clamp-2">{fighter.bio}</p>
                 </div>
-                <div className="mt-3 pt-2 border-t border-slate-800/60 flex flex-wrap gap-1">
-                  {fighter.attributes?.map((attr, idx) => (
-                    <span
-                      key={idx}
-                      className="text-[9px] bg-[#0D1117] text-slate-300 px-1.5 py-0.5 rounded border border-slate-800"
-                    >
-                      {attr}
-                    </span>
-                  ))}
-                </div>
               </div>
             ))}
           </div>
         )}
-
-        {/* HAZARDS TAB */}
-        {activeTab === 'hazards' && (
-          <div className="text-slate-400 text-sm max-w-xl mx-auto text-center py-12">
-            <p className="text-lg font-bold text-slate-200 mb-2">Locations & Hazards</p>
-            <p>Battle arenas, environment effects, and hazard cards will display here.</p>
-          </div>
-        )}
       </main>
-
-      {/* FIGHTER CARD SPLASH MODAL */}
-      {selectedFighter && (
-        <div
-          onClick={() => setSelectedFighter(null)}
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 transition-all"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-gradient-to-b from-[#1C1626] via-[#161B26] to-[#0D1117] border-2 border-orange-500/80 rounded-3xl max-w-md w-full p-6 shadow-2xl relative overflow-hidden text-slate-100 animate-in fade-in zoom-in duration-200"
-          >
-            {/* Top Close Button */}
-            <button
-              onClick={() => setSelectedFighter(null)}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#0D1117]/80 border border-slate-700 text-slate-400 hover:text-white hover:bg-orange-500 hover:border-orange-500 flex items-center justify-center font-bold text-sm transition-all"
-            >
-              ✕
-            </button>
-
-            {/* Fighter Header & Avatar */}
-            <div className="flex flex-col items-center text-center space-y-3 pt-2">
-              <div className="w-20 h-20 rounded-2xl bg-orange-500/10 border-2 border-orange-500/40 flex items-center justify-center text-5xl shadow-lg shadow-orange-950/50">
-                {selectedFighter.image || '❓'}
-              </div>
-
-              <div>
-                <span className="text-[10px] font-mono uppercase font-bold text-orange-400 bg-orange-950/40 border border-orange-900/40 px-2.5 py-0.5 rounded-full">
-                  {selectedFighter.status || 'Contestant'}
-                </span>
-                <h2 className="text-2xl font-black uppercase tracking-wide text-slate-100 mt-1">
-                  {selectedFighter.name}
-                </h2>
-                {selectedFighter.seed && (
-                  <p className="text-xs text-purple-300 font-semibold mt-0.5">
-                    Tournament Seed #{selectedFighter.seed}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Live Vote Banner if available */}
-            {selectedFighter.currentScore !== undefined && (
-              <div className="mt-4 bg-[#0D1117]/80 border border-orange-500/30 rounded-xl p-3 flex items-center justify-between text-xs">
-                <span className="text-slate-400 font-medium">Active Round Score:</span>
-                <span className="font-mono font-extrabold text-orange-400 text-sm">
-                  {selectedFighter.currentScore} Votes
-                </span>
-              </div>
-            )}
-
-            {/* Bio / Description */}
-            <div className="mt-4 space-y-1.5">
-              <h3 className="text-xs font-bold text-purple-300 uppercase tracking-wider">
-                Fighter Bio
-              </h3>
-              <p className="text-xs text-slate-300 leading-relaxed bg-[#0D1117]/60 border border-slate-800/80 rounded-xl p-3">
-                {selectedFighter.bio || selectedFighter.description || 'No detailed lore available for this combatant.'}
-              </p>
-            </div>
-
-            {/* Traits & Attributes */}
-            {selectedFighter.attributes && selectedFighter.attributes.length > 0 && (
-              <div className="mt-4 space-y-1.5">
-                <h3 className="text-xs font-bold text-purple-300 uppercase tracking-wider">
-                  Special Traits & Weapons
-                </h3>
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedFighter.attributes.map((attr, idx) => (
-                    <span
-                      key={idx}
-                      className="text-[10px] bg-purple-950/40 text-purple-200 border border-purple-500/30 px-2.5 py-1 rounded-lg font-medium"
-                    >
-                      ⚡ {attr}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="mt-6 flex gap-3">
-              <a
-                href={votingUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs py-2.5 rounded-xl text-center transition-all shadow-md shadow-orange-500/20 active:scale-95"
-              >
-                Vote for {selectedFighter.name} ↗
-              </a>
-              <button
-                onClick={() => setSelectedFighter(null)}
-                className="px-4 bg-[#0D1117] hover:bg-slate-800 border border-slate-700 text-slate-300 font-bold text-xs py-2.5 rounded-xl transition-all"
-              >
-                Close Card
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
