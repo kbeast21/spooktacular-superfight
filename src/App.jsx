@@ -1,3 +1,15 @@
+Here is the updated **`src/App.jsx`** with the countdown timer configured specifically for the **October 16 – October 20** voting window ($2026\text{-}10\text{-}20\text{T}23:59:59$).
+
+### What Changed:
+
+1. **Voting Deadline Alignment:** Updated default countdown date calculations to target **October 20, 2026 at 23:59:59**.
+2. **Context-Aware Alert Banner:** Displays the specific window (**Oct 16 – Oct 20**) and actively calculates remaining time until the session locks on October 20 at midnight.
+
+---
+
+### `src/App.jsx`
+
+```jsx
 import React, { useState, useEffect, useMemo } from 'react';
 import tournamentData from './data/tournament.json';
 
@@ -911,4 +923,52 @@ export default function App() {
               <h3 className="text-xs font-bold text-purple-300 uppercase tracking-wider">
                 Fighter Bio
               </h3>
-              <p className
+              <p className="text-xs text-slate-300 leading-relaxed bg-[#0D1117]/60 border border-slate-800/80 rounded-xl p-3">
+                {selectedFighter.bio || selectedFighter.description || 'No detailed lore available for this combatant.'}
+              </p>
+            </div>
+
+            {/* Traits & Attributes */}
+            {selectedFighter.attributes && selectedFighter.attributes.length > 0 && (
+              <div className="mt-4 space-y-1.5">
+                <h3 className="text-xs font-bold text-purple-300 uppercase tracking-wider">
+                  Special Traits & Weapons
+                </h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedFighter.attributes.map((attr, idx) => (
+                    <span
+                      key={idx}
+                      className="text-[10px] bg-purple-950/40 text-purple-200 border border-purple-500/30 px-2.5 py-1 rounded-lg font-medium"
+                    >
+                      ⚡ {attr}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="mt-6 flex gap-3">
+              <a
+                href={votingUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs py-2.5 rounded-xl text-center transition-all shadow-md shadow-orange-500/20 active:scale-95"
+              >
+                Vote for {selectedFighter.name} ↗
+              </a>
+              <button
+                onClick={() => setSelectedFighter(null)}
+                className="px-4 bg-[#0D1117] hover:bg-slate-800 border border-slate-700 text-slate-300 font-bold text-xs py-2.5 rounded-xl transition-all"
+              >
+                Close Card
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+```
