@@ -37,6 +37,8 @@ export default function App() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   // Fetch all Google Sheets data on mount
+
+  
   useEffect(() => {
     async function loadAllSheetData() {
       try {
@@ -490,6 +492,62 @@ export default function App() {
           </div>
         )}
       </main>
+
+      {selectedFighter && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#161B26] border border-orange-500/50 rounded-2xl max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setSelectedFighter(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-100 text-lg font-bold w-8 h-8 rounded-full bg-[#0D1117] border border-slate-800 flex items-center justify-center transition-all"
+            >
+              ✕
+            </button>
+
+            <div className="flex items-center gap-4 mb-4">
+              <span className="text-5xl p-3 bg-[#0D1117] border border-slate-800 rounded-2xl">
+                {selectedFighter.image || '❓'}
+              </span>
+              <div>
+                <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-full uppercase bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                  Seed #{selectedFighter.seed || '?'} • {selectedFighter.status || 'Contestant'}
+                </span>
+                <h2 className="text-xl font-black text-slate-100 mt-1">{selectedFighter.name}</h2>
+              </div>
+            </div>
+
+            <div className="space-y-3 text-xs text-slate-300">
+              <div className="bg-[#0D1117]/80 border border-slate-800 rounded-xl p-3">
+                <span className="text-slate-500 font-bold block mb-1 uppercase tracking-wider text-[10px]">Bio / Origin</span>
+                <p className="leading-relaxed">{selectedFighter.bio || 'No background info available.'}</p>
+              </div>
+
+              {selectedFighter.attributes && selectedFighter.attributes.length > 0 && (
+                <div className="bg-[#0D1117]/80 border border-slate-800 rounded-xl p-3">
+                  <span className="text-slate-500 font-bold block mb-1.5 uppercase tracking-wider text-[10px]">Attributes</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedFighter.attributes.map((attr, idx) => (
+                      <span key={idx} className="bg-purple-950/60 border border-purple-500/40 text-purple-300 px-2 py-0.5 rounded-md font-mono text-[10px]">
+                        {attr}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-slate-800 flex justify-end">
+              <button
+                onClick={() => setSelectedFighter(null)}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-4 py-2 rounded-xl text-xs transition-all"
+              >
+                Close Vault
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      
     </div>
   );
 }
