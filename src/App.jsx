@@ -296,28 +296,62 @@ export default function App() {
                     {activeBannerMatch.fighter1.name} <span className="text-orange-500 font-mono">VS</span> {activeBannerMatch.fighter2.name}
                   </h2>
                 </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                  <div onClick={() => setSelectedFighter(activeBannerMatch.fighter1)} className="flex items-center justify-between p-4 rounded-xl border bg-[#0D1117]/80 border-slate-800 cursor-pointer">
-                    <div className="flex items-center gap-3">
-                      <span className="text-3xl">{activeBannerMatch.fighter1.image}</span>
-                      <div>
-                        <h3 className="font-bold text-slate-100 text-sm">{activeBannerMatch.fighter1.name}</h3>
-                        <p className="text-xs text-slate-400">Seed #{activeBannerMatch.fighter1.seed || '?'}</p>
-                      </div>
-                    </div>
-                    <span className="text-base font-mono font-extrabold text-orange-400">{activeBannerMatch.fighter1.currentScore} pts</span>
-                  </div>
-                  <div onClick={() => setSelectedFighter(activeBannerMatch.fighter2)} className="flex items-center justify-between p-4 rounded-xl border bg-[#0D1117]/80 border-slate-800 cursor-pointer">
-                    <div className="flex items-center gap-3">
-                      <span className="text-3xl">{activeBannerMatch.fighter2.image}</span>
-                      <div>
-                        <h3 className="font-bold text-slate-100 text-sm">{activeBannerMatch.fighter2.name}</h3>
-                        <p className="text-xs text-slate-400">Seed #{activeBannerMatch.fighter2.seed || '?'}</p>
-                      </div>
-                    </div>
-                    <span className="text-base font-mono font-extrabold text-orange-400">{activeBannerMatch.fighter2.currentScore} pts</span>
-                  </div>
+        
+          {/* Spotlight Fighter 1 */}
+          <div 
+            onClick={() => setSelectedFighter(activeBannerMatch.fighter1)} 
+            className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all ${
+              activeBannerMatch.fighter1.isLeading && !activeBannerMatch.isTied 
+                ? 'bg-orange-500/15 border-orange-500 shadow-lg shadow-orange-500/20' 
+                : 'bg-[#0D1117]/80 border-slate-800'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">{activeBannerMatch.fighter1.image}</span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-slate-100 text-sm">{activeBannerMatch.fighter1.name}</h3>
+                  {activeBannerMatch.fighter1.isLeading && !activeBannerMatch.isTied && (
+                    <span className="text-[10px] bg-orange-500 text-black font-black px-1.5 py-0.5 rounded uppercase tracking-wider">
+                      👑 LEADING
+                    </span>
+                  )}
                 </div>
+                <p className="text-xs text-slate-400">Seed #{activeBannerMatch.fighter1.seed || '?'}</p>
+              </div>
+            </div>
+            <span className="text-base font-mono font-extrabold text-orange-400">{activeBannerMatch.fighter1.currentScore} pts</span>
+          </div>
+
+          {/* Spotlight Fighter 2 */}
+          <div 
+            onClick={() => setSelectedFighter(activeBannerMatch.fighter2)} 
+            className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all ${
+              activeBannerMatch.fighter2.isLeading && !activeBannerMatch.isTied 
+                ? 'bg-orange-500/15 border-orange-500 shadow-lg shadow-orange-500/20' 
+                : 'bg-[#0D1117]/80 border-slate-800'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">{activeBannerMatch.fighter2.image}</span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-slate-100 text-sm">{activeBannerMatch.fighter2.name}</h3>
+                  {activeBannerMatch.fighter2.isLeading && !activeBannerMatch.isTied && (
+                    <span className="text-[10px] bg-orange-500 text-black font-black px-1.5 py-0.5 rounded uppercase tracking-wider">
+                      👑 LEADING
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-400">Seed #{activeBannerMatch.fighter2.seed || '?'}</p>
+              </div>
+            </div>
+            <span className="text-base font-mono font-extrabold text-orange-400">{activeBannerMatch.fighter2.currentScore} pts</span>
+          </div>
+
+        </div>                
                 <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
                   <span className="text-purple-300 font-medium">📍 Arena: {activeBannerMatch.location || 'Undisclosed Arena'}</span>
                   <a href={votingUrl} target="_blank" rel="noreferrer" className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-1.5 rounded-lg transition-all">
@@ -336,28 +370,59 @@ export default function App() {
                       MATCH {match.id?.toUpperCase()}
                     </span>
                   </div>
+
+                  
                   <div className="space-y-2">
-                    <div onClick={() => setSelectedFighter(match.fighter1)} className="flex items-center justify-between p-3 rounded-xl border bg-[#0D1117] border-slate-800 cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{match.fighter1.image}</span>
-                        <div>
-                          <span className="text-xs font-bold text-slate-200">{match.fighter1.name}</span>
-                          <p className="text-[10px] text-slate-500">Seed #{match.fighter1.seed || '?'}</p>
-                        </div>
-                      </div>
-                      <span className="text-xs font-mono font-bold text-orange-400">{match.fighter1.currentScore} pts</span>
-                    </div>
-                    <div onClick={() => setSelectedFighter(match.fighter2)} className="flex items-center justify-between p-3 rounded-xl border bg-[#0D1117] border-slate-800 cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{match.fighter2.image}</span>
-                        <div>
-                          <span className="text-xs font-bold text-slate-200">{match.fighter2.name}</span>
-                          <p className="text-[10px] text-slate-500">Seed #{match.fighter2.seed || '?'}</p>
-                        </div>
-                      </div>
-                      <span className="text-xs font-mono font-bold text-orange-400">{match.fighter2.currentScore} pts</span>
-                    </div>
+            
+            {/* Grid Fighter 1 */}
+            <div 
+              onClick={() => setSelectedFighter(match.fighter1)} 
+              className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
+                match.fighter1.isLeading && !match.isTied 
+                  ? 'bg-orange-500/15 border-orange-500 shadow-md shadow-orange-500/10' 
+                  : 'bg-[#0D1117] border-slate-800'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{match.fighter1.image}</span>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-slate-200">{match.fighter1.name}</span>
+                    {match.fighter1.isLeading && !match.isTied && <span className="text-[10px]">👑</span>}
                   </div>
+                  <p className="text-[10px] text-slate-500">Seed #{match.fighter1.seed || '?'}</p>
+                </div>
+              </div>
+              <span className="text-xs font-mono font-bold text-orange-400">{match.fighter1.currentScore} pts</span>
+            </div>
+
+            {/* Grid Fighter 2 */}
+            <div 
+              onClick={() => setSelectedFighter(match.fighter2)} 
+              className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
+                match.fighter2.isLeading && !match.isTied 
+                  ? 'bg-orange-500/15 border-orange-500 shadow-md shadow-orange-500/10' 
+                  : 'bg-[#0D1117] border-slate-800'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{match.fighter2.image}</span>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-slate-200">{match.fighter2.name}</span>
+                    {match.fighter2.isLeading && !match.isTied && <span className="text-[10px]">👑</span>}
+                  </div>
+                  <p className="text-[10px] text-slate-500">Seed #{match.fighter2.seed || '?'}</p>
+                </div>
+              </div>
+              <span className="text-xs font-mono font-bold text-orange-400">{match.fighter2.currentScore} pts</span>
+            </div>
+
+          </div>
+
+
+
+                  
                   <div className="flex items-center justify-center text-[11px] font-medium text-purple-300 bg-[#0D1117]/60 py-1.5 px-3 rounded-lg border border-purple-500/20">
                     <span>📍 {match.location || 'Arena'}</span>
                   </div>
