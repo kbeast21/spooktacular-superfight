@@ -1,15 +1,3 @@
-Here is the updated **`src/App.jsx`** with the countdown timer configured specifically for the **October 16 – October 20** voting window ($2026\text{-}10\text{-}20\text{T}23:59:59$).
-
-### What Changed:
-
-1. **Voting Deadline Alignment:** Updated default countdown date calculations to target **October 20, 2026 at 23:59:59**.
-2. **Context-Aware Alert Banner:** Displays the specific window (**Oct 16 – Oct 20**) and actively calculates remaining time until the session locks on October 20 at midnight.
-
----
-
-### `src/App.jsx`
-
-```jsx
 import React, { useState, useEffect, useMemo } from 'react';
 import tournamentData from './data/tournament.json';
 
@@ -970,5 +958,3 @@ export default function App() {
     </div>
   );
 }
-
-```
