@@ -6,6 +6,9 @@ export default function App() {
   const [expandedMatch, setExpandedMatch] = useState(null);
   const [liveScores, setLiveScores] = useState({});
   const [loadingScores, setLoadingScores] = useState(true);
+  
+  // Carousel state for auto-rotating banner
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
 
   // Fetch Live Scores from Google Sheet CSV
   useEffect(() => {
@@ -83,6 +86,17 @@ export default function App() {
     });
   }, [fightersById, liveScores]);
 
+  // Auto-rotate banner every 6 seconds (6000ms)
+  useEffect(() => {
+    if (activeMatchups.length === 0) return;
+
+    const timer = setInterval(() => {
+      setCurrentMatchIndex((prevIndex) => (prevIndex + 1) % activeMatchups.length);
+    }, 6000);
+
+    return () => clearInterval(timer);
+  }, [activeMatchups.length]);
+
   const rounds = [
     {
       id: 'sweet-16',
@@ -113,7 +127,17 @@ export default function App() {
 
   const votingUrl = tournamentData?.activeVotingUrl || '#';
   const activeRoundName = tournamentData?.activeRound || 'Sweet Sixteen';
-  const featuredMatch = activeMatchups[0];
+  
+  // Currently displayed banner matchup
+  const activeBannerMatch = activeMatchups[currentMatchIndex] || activeMatchups[0];
+
+  const handlePrevBanner = () => {
+    setCurrentMatchIndex((prev) => (prev - 1 + activeMatchups.length) % activeMatchups.length);
+  };
+
+  const handleNextBanner = () => {
+    setCurrentMatchIndex((prev) => (prev + 1) % activeMatchups.length);
+  };
 
   return (
     <div className="min-h-screen bg-[#0B0E17] text-slate-100 font-sans flex flex-col">
@@ -220,86 +244,123 @@ export default function App() {
         {activeTab === 'grid' && (
           <div className="max-w-7xl mx-auto space-y-8">
             
-            {/* FEATURED MATCH BANNER */}
-            {featuredMatch && (
-              <div className="bg-gradient-to-r from-[#1A0F26] via-[#161B26] to-[#261208] border border-orange-500/40 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 bg-orange-500 text-black font-black text-[10px] tracking-widest px-3 py-1 rounded-bl-lg uppercase">
-                  FEATURED MATCH
+            {/* ROTATING MATCHUP BANNER */}
+            {activeBannerMatch && (
+              <div className="bg-gradient-to-r from-[#1A0F26] via-[#161B26] to-[#261208] border border-orange-500/40 rounded-2xl p-6 shadow-2xl relative overflow-hidden transition-all duration-500">
+                
+                {/* Top Badge & Controls */}
+                <div className="flex items-center justify-between mb-2">
+                  <div className="bg-orange-500 text-black font-black text-[10px] tracking-widest px-3 py-1 rounded-full uppercase">
+                    SPOTLIGHT BATTLE ({currentMatchIndex + 1}/{activeMatchups.length})
+                  </div>
+                  
+                  {/* Manual Nav Controls */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handlePrevBanner}
+                      className="w-7 h-7 bg-[#0D1117]/80 hover:bg-orange-500 hover:text-black border border-slate-700 text-slate-300 rounded-full flex items-center justify-center text-xs transition-colors"
+                      title="Previous Match"
+                    >
+                      ◀
+                    </button>
+                    <button
+                      onClick={handleNextBanner}
+                      className="w-7 h-7 bg-[#0D1117]/80 hover:bg-orange-500 hover:text-black border border-slate-700 text-slate-300 rounded-full flex items-center justify-center text-xs transition-colors"
+                      title="Next Match"
+                    >
+                      ▶
+                    </button>
+                  </div>
                 </div>
 
                 <div className="text-center mb-4">
                   <span className="text-xs font-bold text-orange-400 tracking-widest uppercase">
-                    {activeRoundName} • Matchup {featuredMatch.id.toUpperCase()}
+                    {activeRoundName} • Matchup {activeBannerMatch.id.toUpperCase()}
                   </span>
                   <h2 className="text-lg sm:text-xl font-black text-slate-100 mt-0.5">
-                    {featuredMatch.fighter1.name} <span className="text-orange-500 font-mono">VS</span> {featuredMatch.fighter2.name}
+                    {activeBannerMatch.fighter1.name} <span className="text-orange-500 font-mono">VS</span> {activeBannerMatch.fighter2.name}
                   </h2>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                   {/* Contestant 1 */}
                   <div
-                    className={`flex items-center justify-between p-4 rounded-xl border ${
-                      featuredMatch.fighter1.isLeading
+                    className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+                      activeBannerMatch.fighter1.isLeading
                         ? 'bg-[#1C1610] border-orange-500/80 shadow-lg shadow-orange-950/40'
                         : 'bg-[#0D1117]/80 border-slate-800'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-3xl sm:text-4xl">{featuredMatch.fighter1.image}</span>
+                      <span className="text-3xl sm:text-4xl">{activeBannerMatch.fighter1.image}</span>
                       <div>
                         <div className="flex items-center gap-2">
                           <h3 className="font-bold text-slate-100 text-sm sm:text-base">
-                            {featuredMatch.fighter1.name}
+                            {activeBannerMatch.fighter1.name}
                           </h3>
-                          {featuredMatch.fighter1.isLeading && (
+                          {activeBannerMatch.fighter1.isLeading && (
                             <span className="text-[9px] bg-orange-500/20 text-orange-400 border border-orange-500/40 px-1.5 py-0.5 rounded font-mono font-bold uppercase">
                               IN LEAD
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-400">Seed #{featuredMatch.fighter1.seed}</p>
+                        <p className="text-xs text-slate-400">Seed #{activeBannerMatch.fighter1.seed}</p>
                       </div>
                     </div>
                     <span className="text-base sm:text-lg font-mono font-extrabold text-orange-400">
-                      {loadingScores ? '...' : `${featuredMatch.fighter1.currentScore} pts`}
+                      {loadingScores ? '...' : `${activeBannerMatch.fighter1.currentScore} pts`}
                     </span>
                   </div>
 
                   {/* Contestant 2 */}
                   <div
-                    className={`flex items-center justify-between p-4 rounded-xl border ${
-                      featuredMatch.fighter2.isLeading
+                    className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+                      activeBannerMatch.fighter2.isLeading
                         ? 'bg-[#1C1610] border-orange-500/80 shadow-lg shadow-orange-950/40'
                         : 'bg-[#0D1117]/80 border-slate-800'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-3xl sm:text-4xl">{featuredMatch.fighter2.image}</span>
+                      <span className="text-3xl sm:text-4xl">{activeBannerMatch.fighter2.image}</span>
                       <div>
                         <div className="flex items-center gap-2">
                           <h3 className="font-bold text-slate-100 text-sm sm:text-base">
-                            {featuredMatch.fighter2.name}
+                            {activeBannerMatch.fighter2.name}
                           </h3>
-                          {featuredMatch.fighter2.isLeading && (
+                          {activeBannerMatch.fighter2.isLeading && (
                             <span className="text-[9px] bg-orange-500/20 text-orange-400 border border-orange-500/40 px-1.5 py-0.5 rounded font-mono font-bold uppercase">
                               IN LEAD
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-400">Seed #{featuredMatch.fighter2.seed}</p>
+                        <p className="text-xs text-slate-400">Seed #{activeBannerMatch.fighter2.seed}</p>
                       </div>
                     </div>
                     <span className="text-base sm:text-lg font-mono font-extrabold text-orange-400">
-                      {loadingScores ? '...' : `${featuredMatch.fighter2.currentScore} pts`}
+                      {loadingScores ? '...' : `${activeBannerMatch.fighter2.currentScore} pts`}
                     </span>
                   </div>
                 </div>
 
                 <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between text-xs gap-2">
                   <span className="text-purple-300 font-medium flex items-center gap-1.5">
-                    <span>📍 Arena:</span> {featuredMatch.location}
+                    <span>📍 Arena:</span> {activeBannerMatch.location}
                   </span>
+                  
+                  {/* Carousel Progress Dots */}
+                  <div className="flex items-center gap-1.5 my-1">
+                    {activeMatchups.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentMatchIndex(idx)}
+                        className={`h-1.5 rounded-full transition-all ${
+                          idx === currentMatchIndex ? 'w-5 bg-orange-500' : 'w-1.5 bg-slate-700 hover:bg-slate-500'
+                        }`}
+                        title={`Go to match ${idx + 1}`}
+                      />
+                    ))}
+                  </div>
+
                   <a
                     href={votingUrl}
                     target="_blank"
