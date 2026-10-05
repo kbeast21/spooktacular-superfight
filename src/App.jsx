@@ -14,6 +14,38 @@ export default function App() {
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
+  // Countdown Timer State (Default Deadline: Midnight Halloween 2026)
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  // Target voting deadline (Oct 31, 2026 23:59:59)
+  const votingDeadline = useMemo(() => {
+    return new Date(tournamentData?.roundDeadline || '2026-10-31T23:59:59').getTime();
+  }, []);
+
+  // Live Countdown Effect
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date().getTime();
+      const distance = votingDeadline - now;
+
+      if (distance <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+
+      setTimeLeft({
+        days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+        minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+        seconds: Math.floor((distance % (1000 * 60)) / 1000),
+      });
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [votingDeadline]);
+
   // Fetch Live Scores from Google Sheet CSV
   useEffect(() => {
     async function fetchScores() {
@@ -197,12 +229,18 @@ export default function App() {
         </div>
       </header>
 
-      {/* ALERT BANNER */}
-      <div className="bg-[#2A1508] border-b border-orange-900/40 text-orange-400 text-xs py-2.5 px-4 text-center font-medium flex items-center justify-center gap-2">
-        <span className="text-sm">⚠️</span>
+      {/* ALERT BANNER: COUNTDOWN TIMER */}
+      <div className="bg-[#2A1508] border-b border-orange-900/40 text-orange-400 text-xs py-2.5 px-4 text-center font-medium flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+        <span className="text-sm">⏳</span>
         <span>
-          Ballots for <strong>{activeRoundName}</strong> are currently OPEN!
+          <strong>{activeRoundName}</strong> Voting Session Closes In:
         </span>
+        <div className="flex items-center gap-1 font-mono font-bold text-orange-300 bg-black/40 px-2.5 py-1 rounded-md border border-orange-500/30 text-xs">
+          <span>{String(timeLeft.days).padStart(2, '0')}d</span>:
+          <span>{String(timeLeft.hours).padStart(2, '0')}h</span>:
+          <span>{String(timeLeft.minutes).padStart(2, '0')}m</span>:
+          <span>{String(timeLeft.seconds).padStart(2, '0')}s</span>
+        </div>
         <a
           href={votingUrl}
           target="_blank"
