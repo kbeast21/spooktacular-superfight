@@ -17,16 +17,16 @@ export default function App() {
   // Countdown Timer State
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
-  // Target voting deadline (Oct 20, 2026 23:59:59)
-  const votingDeadline = useMemo(() => {
-    return new Date(tournamentData?.roundDeadline || '2026-10-20T23:59:59').getTime();
+  // Target voting START date (Oct 16, 2026 00:00:00)
+  const votingStartDate = useMemo(() => {
+    return new Date(tournamentData?.votingStartDate || '2026-10-16T00:00:00').getTime();
   }, []);
 
   // Live Countdown Effect
   useEffect(() => {
     const updateCountdown = () => {
       const now = new Date().getTime();
-      const distance = votingDeadline - now;
+      const distance = votingStartDate - now;
 
       if (distance <= 0) {
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -44,7 +44,7 @@ export default function App() {
     updateCountdown();
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
-  }, [votingDeadline]);
+  }, [votingStartDate]);
 
   // Fetch Live Scores from Google Sheet CSV
   useEffect(() => {
@@ -229,11 +229,11 @@ export default function App() {
         </div>
       </header>
 
-      {/* ALERT BANNER: COUNTDOWN TIMER FOR OCT 16-20 SESSION */}
+      {/* ALERT BANNER: COUNTDOWN TIMER TO VOTING START */}
       <div className="bg-[#2A1508] border-b border-orange-900/40 text-orange-400 text-xs py-2.5 px-4 text-center font-medium flex flex-wrap items-center justify-center gap-2 sm:gap-3">
         <span className="text-sm">⏳</span>
         <span>
-          <strong>{activeRoundName}</strong> (Oct 16–20) Voting Closes In:
+          <strong>{activeRoundName}</strong> Voting Session Opens In:
         </span>
         <div className="flex items-center gap-1 font-mono font-bold text-orange-300 bg-black/40 px-2.5 py-1 rounded-md border border-orange-500/30 text-xs">
           <span>{String(timeLeft.days).padStart(2, '0')}d</span>:
@@ -247,7 +247,7 @@ export default function App() {
           rel="noreferrer"
           className="underline font-bold text-orange-300 hover:text-orange-200 ml-1 inline-flex items-center gap-0.5"
         >
-          Submit Ballot ↗
+          Preview Ballot ↗
         </a>
       </div>
 
@@ -654,307 +654,4 @@ export default function App() {
                     return (
                       <div
                         key={match.id}
-                        className="bg-[#161B26] border border-slate-800/90 rounded-xl p-3 shadow-xl flex flex-col gap-2 hover:border-slate-700/80 transition-all"
-                      >
-                        <div className="flex items-center justify-between text-[11px] font-medium text-purple-400">
-                          {match.matchTitle ? (
-                            <div className="text-[10px] font-bold text-orange-400/90 bg-orange-950/30 px-2 py-0.5 rounded border border-orange-900/30">
-                              {match.matchTitle}
-                            </div>
-                          ) : (
-                            <span />
-                          )}
-
-                          {match.isTied ? (
-                            <span className="bg-slate-800 text-slate-400 font-mono text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">
-                              TIED
-                            </span>
-                          ) : (
-                            <span className="text-slate-500 font-mono text-[10px] uppercase">
-                              {match.id}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Fighter 1 Card */}
-                        <div
-                          onClick={() => setSelectedFighter(match.fighter1)}
-                          className={`flex items-center justify-between p-2.5 rounded-lg border transition-all cursor-pointer hover:scale-[1.01] ${
-                            match.fighter1.isLeading
-                              ? 'bg-[#1C1610] border-orange-500/60 shadow-md shadow-orange-950/30'
-                              : 'bg-[#0D1117] border-slate-800/50 opacity-85 hover:border-slate-700'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">{match.fighter1.image}</span>
-                            <div>
-                              <div className="flex items-center gap-1.5">
-                                <span
-                                  className={`text-xs font-bold ${
-                                    match.fighter1.isLeading ? 'text-orange-400' : 'text-slate-200'
-                                  }`}
-                                >
-                                  {match.fighter1.name}
-                                </span>
-                                {match.fighter1.isLeading && (
-                                  <span className="text-[8px] bg-orange-500/20 text-orange-400 border border-orange-500/40 px-1 py-0.2 rounded font-mono font-bold uppercase">
-                                    IN LEAD
-                                  </span>
-                                )}
-                              </div>
-                              {match.fighter1.seed && (
-                                <span className="text-[9px] text-slate-500">
-                                  Seed #{match.fighter1.seed}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <span
-                            className={`text-xs font-mono font-bold ${
-                              match.fighter1.isLeading ? 'text-orange-400 text-sm' : 'text-slate-400'
-                            }`}
-                          >
-                            {loadingScores ? '...' : `${match.fighter1.currentScore} pts`}
-                          </span>
-                        </div>
-
-                        {/* Fighter 2 Card */}
-                        <div
-                          onClick={() => setSelectedFighter(match.fighter2)}
-                          className={`flex items-center justify-between p-2.5 rounded-lg border transition-all cursor-pointer hover:scale-[1.01] ${
-                            match.fighter2.isLeading
-                              ? 'bg-[#1C1610] border-orange-500/60 shadow-md shadow-orange-950/30'
-                              : 'bg-[#0D1117] border-slate-800/50 opacity-85 hover:border-slate-700'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">{match.fighter2.image}</span>
-                            <div>
-                              <div className="flex items-center gap-1.5">
-                                <span
-                                  className={`text-xs font-bold ${
-                                    match.fighter2.isLeading ? 'text-orange-400' : 'text-slate-200'
-                                  }`}
-                                >
-                                  {match.fighter2.name}
-                                </span>
-                                {match.fighter2.isLeading && (
-                                  <span className="text-[8px] bg-orange-500/20 text-orange-400 border border-orange-500/40 px-1 py-0.2 rounded font-mono font-bold uppercase">
-                                    IN LEAD
-                                  </span>
-                                )}
-                              </div>
-                              {match.fighter2.seed && (
-                                <span className="text-[9px] text-slate-500">
-                                  Seed #{match.fighter2.seed}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <span
-                            className={`text-xs font-mono font-bold ${
-                              match.fighter2.isLeading ? 'text-orange-400 text-sm' : 'text-slate-400'
-                            }`}
-                          >
-                            {loadingScores ? '...' : `${match.fighter2.currentScore} pts`}
-                          </span>
-                        </div>
-
-                        {/* Location Tag */}
-                        <div className="flex items-center justify-center text-[11px] font-medium text-purple-400 bg-[#0D1117]/60 py-1 px-2 rounded border border-purple-500/20 mt-1">
-                          <span className="truncate flex items-center gap-1.5" title={match.location}>
-                            <span>📍</span> {match.location}
-                          </span>
-                        </div>
-
-                        {/* Toggle Details */}
-                        {isExpanded && (
-                          <div className="mt-1 pt-2 border-t border-slate-800/80 text-[11px] bg-[#0D1117] p-2.5 rounded-lg space-y-2">
-                            <div>
-                              <p className="text-[10px] font-bold text-purple-300 uppercase">
-                                {match.fighter1.name} Attributes:
-                              </p>
-                              <p className="text-[10px] text-slate-400">
-                                {match.fighter1.attributes?.join(', ') || 'Standard fighter skills'}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] font-bold text-purple-300 uppercase">
-                                {match.fighter2.name} Attributes:
-                              </p>
-                              <p className="text-[10px] text-slate-400">
-                                {match.fighter2.attributes?.join(', ') || 'Standard fighter skills'}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-
-                        <button
-                          onClick={() => toggleMatchDetails(match.id)}
-                          className="w-full text-center text-[10px] font-semibold text-slate-400 hover:text-orange-400 pt-1 transition-colors"
-                        >
-                          {isExpanded ? 'Hide Fighter Attributes ▲' : 'View Fighter Attributes ▼'}
-                        </button>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="border border-dashed border-slate-800/80 rounded-xl p-6 text-center text-xs text-slate-500 flex items-center justify-center min-h-[140px] bg-[#0D1117]/40 leading-relaxed font-medium">
-                    Matchups lock after previous round concludes
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* VAULT TAB */}
-        {activeTab === 'vault' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-7xl mx-auto">
-            {tournamentData?.fighters?.map((fighter) => (
-              <div
-                key={fighter.id}
-                onClick={() => setSelectedFighter(fighter)}
-                className="bg-[#161B26] border border-slate-800 rounded-xl p-4 flex flex-col justify-between shadow-lg cursor-pointer hover:border-orange-500/50 hover:scale-[1.02] transition-all"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-3xl">{fighter.image}</span>
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                        fighter.status === 'Main Bracket'
-                          ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                          : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                      }`}
-                    >
-                      {fighter.status}
-                    </span>
-                  </div>
-                  <h3 className="text-sm font-bold text-slate-100">{fighter.name}</h3>
-                  <p className="text-xs text-slate-400 mt-1 line-clamp-2">{fighter.bio}</p>
-                </div>
-                <div className="mt-3 pt-2 border-t border-slate-800/60 flex flex-wrap gap-1">
-                  {fighter.attributes?.map((attr, idx) => (
-                    <span
-                      key={idx}
-                      className="text-[9px] bg-[#0D1117] text-slate-300 px-1.5 py-0.5 rounded border border-slate-800"
-                    >
-                      {attr}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* HAZARDS TAB */}
-        {activeTab === 'hazards' && (
-          <div className="text-slate-400 text-sm max-w-xl mx-auto text-center py-12">
-            <p className="text-lg font-bold text-slate-200 mb-2">Locations & Hazards</p>
-            <p>Battle arenas, environment effects, and hazard cards will display here.</p>
-          </div>
-        )}
-      </main>
-
-      {/* FIGHTER CARD SPLASH MODAL */}
-      {selectedFighter && (
-        <div
-          onClick={() => setSelectedFighter(null)}
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 transition-all"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-gradient-to-b from-[#1C1626] via-[#161B26] to-[#0D1117] border-2 border-orange-500/80 rounded-3xl max-w-md w-full p-6 shadow-2xl relative overflow-hidden text-slate-100 animate-in fade-in zoom-in duration-200"
-          >
-            {/* Top Close Button */}
-            <button
-              onClick={() => setSelectedFighter(null)}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#0D1117]/80 border border-slate-700 text-slate-400 hover:text-white hover:bg-orange-500 hover:border-orange-500 flex items-center justify-center font-bold text-sm transition-all"
-            >
-              ✕
-            </button>
-
-            {/* Fighter Header & Avatar */}
-            <div className="flex flex-col items-center text-center space-y-3 pt-2">
-              <div className="w-20 h-20 rounded-2xl bg-orange-500/10 border-2 border-orange-500/40 flex items-center justify-center text-5xl shadow-lg shadow-orange-950/50">
-                {selectedFighter.image || '❓'}
-              </div>
-
-              <div>
-                <span className="text-[10px] font-mono uppercase font-bold text-orange-400 bg-orange-950/40 border border-orange-900/40 px-2.5 py-0.5 rounded-full">
-                  {selectedFighter.status || 'Contestant'}
-                </span>
-                <h2 className="text-2xl font-black uppercase tracking-wide text-slate-100 mt-1">
-                  {selectedFighter.name}
-                </h2>
-                {selectedFighter.seed && (
-                  <p className="text-xs text-purple-300 font-semibold mt-0.5">
-                    Tournament Seed #{selectedFighter.seed}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Live Vote Banner if available */}
-            {selectedFighter.currentScore !== undefined && (
-              <div className="mt-4 bg-[#0D1117]/80 border border-orange-500/30 rounded-xl p-3 flex items-center justify-between text-xs">
-                <span className="text-slate-400 font-medium">Active Round Score:</span>
-                <span className="font-mono font-extrabold text-orange-400 text-sm">
-                  {selectedFighter.currentScore} Votes
-                </span>
-              </div>
-            )}
-
-            {/* Bio / Description */}
-            <div className="mt-4 space-y-1.5">
-              <h3 className="text-xs font-bold text-purple-300 uppercase tracking-wider">
-                Fighter Bio
-              </h3>
-              <p className="text-xs text-slate-300 leading-relaxed bg-[#0D1117]/60 border border-slate-800/80 rounded-xl p-3">
-                {selectedFighter.bio || selectedFighter.description || 'No detailed lore available for this combatant.'}
-              </p>
-            </div>
-
-            {/* Traits & Attributes */}
-            {selectedFighter.attributes && selectedFighter.attributes.length > 0 && (
-              <div className="mt-4 space-y-1.5">
-                <h3 className="text-xs font-bold text-purple-300 uppercase tracking-wider">
-                  Special Traits & Weapons
-                </h3>
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedFighter.attributes.map((attr, idx) => (
-                    <span
-                      key={idx}
-                      className="text-[10px] bg-purple-950/40 text-purple-200 border border-purple-500/30 px-2.5 py-1 rounded-lg font-medium"
-                    >
-                      ⚡ {attr}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="mt-6 flex gap-3">
-              <a
-                href={votingUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs py-2.5 rounded-xl text-center transition-all shadow-md shadow-orange-500/20 active:scale-95"
-              >
-                Vote for {selectedFighter.name} ↗
-              </a>
-              <button
-                onClick={() => setSelectedFighter(null)}
-                className="px-4 bg-[#0D1117] hover:bg-slate-800 border border-slate-700 text-slate-300 font-bold text-xs py-2.5 rounded-xl transition-all"
-              >
-                Close Card
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+                        className="bg-[#161B26] border border-slate-800/90
