@@ -7,7 +7,7 @@ export default function App() {
   const [liveScores, setLiveScores] = useState({});
   const [loadingScores, setLoadingScores] = useState(true);
 
-  // 1. Fetch Live Scores from Google Sheet CSV
+  // Fetch Live Scores from Google Sheet CSV
   useEffect(() => {
     async function fetchScores() {
       if (!tournamentData?.googleSheetCsvUrl) {
@@ -74,7 +74,6 @@ export default function App() {
         const scoreA = liveScores[m.fighterAId?.toLowerCase()] ?? fA.votes ?? 0;
         const scoreB = liveScores[m.fighterBId?.toLowerCase()] ?? fB.votes ?? 0;
 
-        // Determine leader state
         const isATied = scoreA === scoreB;
         const isALeading = scoreA > scoreB;
         const isBLeading = scoreB > scoreA;
@@ -221,11 +220,16 @@ export default function App() {
                         key={match.id}
                         className="bg-[#161B26] border border-slate-800/90 rounded-xl p-3 shadow-xl flex flex-col gap-2 hover:border-slate-700/80 transition-all"
                       >
-                        {/* Location & Tied/Match Status Badge */}
+                        {/* Header: Match Title & Tied/Match ID Status */}
                         <div className="flex items-center justify-between text-[11px] font-medium text-purple-400">
-                          <span className="truncate pr-2 flex items-center gap-1.5" title={match.location}>
-                            <span>📍</span> {match.location}
-                          </span>
+                          {match.matchTitle ? (
+                            <div className="text-[10px] font-bold text-orange-400/90 bg-orange-950/30 px-2 py-0.5 rounded border border-orange-900/30">
+                              {match.matchTitle}
+                            </div>
+                          ) : (
+                            <span />
+                          )}
+
                           {match.isTied ? (
                             <span className="bg-slate-800 text-slate-400 font-mono text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">
                               TIED
@@ -236,13 +240,6 @@ export default function App() {
                             </span>
                           )}
                         </div>
-
-                        {/* Match Title */}
-                        {match.matchTitle && (
-                          <div className="text-[10px] font-bold text-orange-400/90 bg-orange-950/30 px-2 py-0.5 rounded border border-orange-900/30">
-                            {match.matchTitle}
-                          </div>
-                        )}
 
                         {/* Fighter 1 Card */}
                         <div
@@ -326,9 +323,16 @@ export default function App() {
                           </span>
                         </div>
 
+                        {/* Location Tag below contestants */}
+                        <div className="flex items-center justify-center text-[11px] font-medium text-purple-400 bg-[#0D1117]/60 py-1 px-2 rounded border border-purple-500/20 mt-1">
+                          <span className="truncate flex items-center gap-1.5" title={match.location}>
+                            <span>📍</span> {match.location}
+                          </span>
+                        </div>
+
                         {/* Score Breakdown / Fighter Traits */}
                         {isExpanded && (
-                          <div className="mt-2 pt-2 border-t border-slate-800/80 text-[11px] bg-[#0D1117] p-2.5 rounded-lg space-y-2">
+                          <div className="mt-1 pt-2 border-t border-slate-800/80 text-[11px] bg-[#0D1117] p-2.5 rounded-lg space-y-2">
                             <div>
                               <p className="text-[10px] font-bold text-purple-300 uppercase">
                                 {match.fighter1.name} Attributes:
