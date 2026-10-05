@@ -80,7 +80,7 @@ export default function App() {
         setLiveScores(parsedScores);
       } catch (err) {
         console.error('Error loading Google Sheet data:', err);
-      } font-bold {
+      } finally {
         setLoading(false);
       }
     }
