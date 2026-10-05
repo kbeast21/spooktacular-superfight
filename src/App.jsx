@@ -6,9 +6,10 @@ export default function App() {
   const [expandedMatch, setExpandedMatch] = useState(null);
   const [liveScores, setLiveScores] = useState({});
   const [loadingScores, setLoadingScores] = useState(true);
-  
+
   // Carousel state for auto-rotating banner
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
   // Fetch Live Scores from Google Sheet CSV
   useEffect(() => {
@@ -27,7 +28,7 @@ export default function App() {
 
         lines.forEach((line) => {
           const columns = line.split(',').map((col) => col.trim().replace(/^"|"$/g, ''));
-          
+
           if (columns.length >= 2) {
             const key = columns[0].toLowerCase();
             const val = parseInt(columns[1], 10);
@@ -86,16 +87,16 @@ export default function App() {
     });
   }, [fightersById, liveScores]);
 
-  // Auto-rotate banner every 14 seconds (6000ms)
+  // Auto-rotate banner every 14 seconds (14000ms), pausing on hover or manual interaction
   useEffect(() => {
-    if (activeMatchups.length === 0) return;
+    if (activeMatchups.length === 0 || isPaused) return;
 
     const timer = setInterval(() => {
       setCurrentMatchIndex((prevIndex) => (prevIndex + 1) % activeMatchups.length);
     }, 14000);
 
     return () => clearInterval(timer);
-  }, [activeMatchups.length]);
+  }, [activeMatchups.length, isPaused]);
 
   const rounds = [
     {
@@ -127,16 +128,23 @@ export default function App() {
 
   const votingUrl = tournamentData?.activeVotingUrl || '#';
   const activeRoundName = tournamentData?.activeRound || 'Sweet Sixteen';
-  
+
   // Currently displayed banner matchup
   const activeBannerMatch = activeMatchups[currentMatchIndex] || activeMatchups[0];
 
   const handlePrevBanner = () => {
+    setIsPaused(true);
     setCurrentMatchIndex((prev) => (prev - 1 + activeMatchups.length) % activeMatchups.length);
   };
 
   const handleNextBanner = () => {
+    setIsPaused(true);
     setCurrentMatchIndex((prev) => (prev + 1) % activeMatchups.length);
+  };
+
+  const handleSelectDot = (idx) => {
+    setIsPaused(true);
+    setCurrentMatchIndex(idx);
   };
 
   return (
@@ -239,21 +247,29 @@ export default function App() {
 
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 overflow-x-auto p-4 md:p-8">
-        
         {/* LANDING PAGE GRID VIEW */}
         {activeTab === 'grid' && (
           <div className="max-w-7xl mx-auto space-y-8">
-            
-            {/* ROTATING MATCHUP BANNER */}
+            {/* ROTATING MATCHUP BANNER (14s Delay + Pause on Hover/Interaction) */}
             {activeBannerMatch && (
-              <div className="bg-gradient-to-r from-[#1A0F26] via-[#161B26] to-[#261208] border border-orange-500/40 rounded-2xl p-6 shadow-2xl relative overflow-hidden transition-all duration-500">
-                
-                {/* Top Badge & Controls */}
+              <div
+                onMouseEnter={() => setIsPaused(true)}
+                onMouseLeave={() => setIsPaused(false)}
+                className="bg-gradient-to-r from-[#1A0F26] via-[#161B26] to-[#261208] border border-orange-500/40 rounded-2xl p-6 shadow-2xl relative overflow-hidden transition-all duration-500"
+              >
+                {/* Top Badge & Status Controls */}
                 <div className="flex items-center justify-between mb-2">
-                  <div className="bg-orange-500 text-black font-black text-[10px] tracking-widest px-3 py-1 rounded-full uppercase">
-                    SPOTLIGHT BATTLE ({currentMatchIndex + 1}/{activeMatchups.length})
+                  <div className="flex items-center gap-2">
+                    <span className="bg-orange-500 text-black font-black text-[10px] tracking-widest px-3 py-1 rounded-full uppercase">
+                      SPOTLIGHT BATTLE ({currentMatchIndex + 1}/{activeMatchups.length})
+                    </span>
+                    {isPaused && (
+                      <span className="text-[9px] bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-full font-mono uppercase font-semibold">
+                        ⏸ PAUSED
+                      </span>
+                    )}
                   </div>
-                  
+
                   {/* Manual Nav Controls */}
                   <div className="flex items-center gap-2">
                     <button
@@ -278,7 +294,9 @@ export default function App() {
                     {activeRoundName} • Matchup {activeBannerMatch.id.toUpperCase()}
                   </span>
                   <h2 className="text-lg sm:text-xl font-black text-slate-100 mt-0.5">
-                    {activeBannerMatch.fighter1.name} <span className="text-orange-500 font-mono">VS</span> {activeBannerMatch.fighter2.name}
+                    {activeBannerMatch.fighter1.name}{' '}
+                    <span className="text-orange-500 font-mono">VS</span>{' '}
+                    {activeBannerMatch.fighter2.name}
                   </h2>
                 </div>
 
@@ -292,7 +310,9 @@ export default function App() {
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-3xl sm:text-4xl">{activeBannerMatch.fighter1.image}</span>
+                      <span className="text-3xl sm:text-4xl">
+                        {activeBannerMatch.fighter1.image}
+                      </span>
                       <div>
                         <div className="flex items-center gap-2">
                           <h3 className="font-bold text-slate-100 text-sm sm:text-base">
@@ -304,7 +324,9 @@ export default function App() {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-400">Seed #{activeBannerMatch.fighter1.seed}</p>
+                        <p className="text-xs text-slate-400">
+                          Seed #{activeBannerMatch.fighter1.seed}
+                        </p>
                       </div>
                     </div>
                     <span className="text-base sm:text-lg font-mono font-extrabold text-orange-400">
@@ -321,7 +343,9 @@ export default function App() {
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-3xl sm:text-4xl">{activeBannerMatch.fighter2.image}</span>
+                      <span className="text-3xl sm:text-4xl">
+                        {activeBannerMatch.fighter2.image}
+                      </span>
                       <div>
                         <div className="flex items-center gap-2">
                           <h3 className="font-bold text-slate-100 text-sm sm:text-base">
@@ -333,7 +357,9 @@ export default function App() {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-400">Seed #{activeBannerMatch.fighter2.seed}</p>
+                        <p className="text-xs text-slate-400">
+                          Seed #{activeBannerMatch.fighter2.seed}
+                        </p>
                       </div>
                     </div>
                     <span className="text-base sm:text-lg font-mono font-extrabold text-orange-400">
@@ -346,15 +372,17 @@ export default function App() {
                   <span className="text-purple-300 font-medium flex items-center gap-1.5">
                     <span>📍 Arena:</span> {activeBannerMatch.location}
                   </span>
-                  
+
                   {/* Carousel Progress Dots */}
                   <div className="flex items-center gap-1.5 my-1">
                     {activeMatchups.map((_, idx) => (
                       <button
                         key={idx}
-                        onClick={() => setCurrentMatchIndex(idx)}
+                        onClick={() => handleSelectDot(idx)}
                         className={`h-1.5 rounded-full transition-all ${
-                          idx === currentMatchIndex ? 'w-5 bg-orange-500' : 'w-1.5 bg-slate-700 hover:bg-slate-500'
+                          idx === currentMatchIndex
+                            ? 'w-5 bg-orange-500'
+                            : 'w-1.5 bg-slate-700 hover:bg-slate-500'
                         }`}
                         title={`Go to match ${idx + 1}`}
                       />
