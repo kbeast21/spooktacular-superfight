@@ -7,6 +7,9 @@ export default function App() {
   const [liveScores, setLiveScores] = useState({});
   const [loadingScores, setLoadingScores] = useState(true);
 
+  // Fighter Splash Modal State
+  const [selectedFighter, setSelectedFighter] = useState(null);
+
   // Carousel state for auto-rotating banner
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -47,6 +50,17 @@ export default function App() {
     }
 
     fetchScores();
+  }, []);
+
+  // Listen for Escape key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setSelectedFighter(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const toggleMatchDetails = (matchId) => {
@@ -148,7 +162,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0E17] text-slate-100 font-sans flex flex-col">
+    <div className="min-h-screen bg-[#0B0E17] text-slate-100 font-sans flex flex-col relative">
       {/* HEADER */}
       <header className="bg-[#0D1117] border-b border-slate-800/80 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -250,7 +264,7 @@ export default function App() {
         {/* LANDING PAGE GRID VIEW */}
         {activeTab === 'grid' && (
           <div className="max-w-7xl mx-auto space-y-8">
-            {/* ROTATING MATCHUP BANNER (8s Delay + Pause on Hover/Interaction) */}
+            {/* ROTATING MATCHUP BANNER */}
             {activeBannerMatch && (
               <div
                 onMouseEnter={() => setIsPaused(true)}
@@ -303,10 +317,11 @@ export default function App() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                   {/* Contestant 1 */}
                   <div
-                    className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+                    onClick={() => setSelectedFighter(activeBannerMatch.fighter1)}
+                    className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer hover:scale-[1.01] ${
                       activeBannerMatch.fighter1.isLeading
                         ? 'bg-[#1C1610] border-orange-500/80 shadow-lg shadow-orange-950/40'
-                        : 'bg-[#0D1117]/80 border-slate-800'
+                        : 'bg-[#0D1117]/80 border-slate-800 hover:border-slate-700'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -336,10 +351,11 @@ export default function App() {
 
                   {/* Contestant 2 */}
                   <div
-                    className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+                    onClick={() => setSelectedFighter(activeBannerMatch.fighter2)}
+                    className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer hover:scale-[1.01] ${
                       activeBannerMatch.fighter2.isLeading
                         ? 'bg-[#1C1610] border-orange-500/80 shadow-lg shadow-orange-950/40'
-                        : 'bg-[#0D1117]/80 border-slate-800'
+                        : 'bg-[#0D1117]/80 border-slate-800 hover:border-slate-700'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -450,10 +466,11 @@ export default function App() {
                     <div className="space-y-2">
                       {/* Fighter 1 */}
                       <div
-                        className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+                        onClick={() => setSelectedFighter(match.fighter1)}
+                        className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer hover:scale-[1.01] ${
                           match.fighter1.isLeading
                             ? 'bg-[#1C1610] border-orange-500/60 shadow-md shadow-orange-950/30'
-                            : 'bg-[#0D1117] border-slate-800/60'
+                            : 'bg-[#0D1117] border-slate-800/60 hover:border-slate-700'
                         }`}
                       >
                         <div className="flex items-center gap-3">
@@ -489,10 +506,11 @@ export default function App() {
 
                       {/* Fighter 2 */}
                       <div
-                        className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+                        onClick={() => setSelectedFighter(match.fighter2)}
+                        className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer hover:scale-[1.01] ${
                           match.fighter2.isLeading
                             ? 'bg-[#1C1610] border-orange-500/60 shadow-md shadow-orange-950/30'
-                            : 'bg-[#0D1117] border-slate-800/60'
+                            : 'bg-[#0D1117] border-slate-800/60 hover:border-slate-700'
                         }`}
                       >
                         <div className="flex items-center gap-3">
@@ -622,10 +640,11 @@ export default function App() {
 
                         {/* Fighter 1 Card */}
                         <div
-                          className={`flex items-center justify-between p-2.5 rounded-lg border transition-all ${
+                          onClick={() => setSelectedFighter(match.fighter1)}
+                          className={`flex items-center justify-between p-2.5 rounded-lg border transition-all cursor-pointer hover:scale-[1.01] ${
                             match.fighter1.isLeading
                               ? 'bg-[#1C1610] border-orange-500/60 shadow-md shadow-orange-950/30'
-                              : 'bg-[#0D1117] border-slate-800/50 opacity-85'
+                              : 'bg-[#0D1117] border-slate-800/50 opacity-85 hover:border-slate-700'
                           }`}
                         >
                           <div className="flex items-center gap-2">
@@ -663,10 +682,11 @@ export default function App() {
 
                         {/* Fighter 2 Card */}
                         <div
-                          className={`flex items-center justify-between p-2.5 rounded-lg border transition-all ${
+                          onClick={() => setSelectedFighter(match.fighter2)}
+                          className={`flex items-center justify-between p-2.5 rounded-lg border transition-all cursor-pointer hover:scale-[1.01] ${
                             match.fighter2.isLeading
                               ? 'bg-[#1C1610] border-orange-500/60 shadow-md shadow-orange-950/30'
-                              : 'bg-[#0D1117] border-slate-800/50 opacity-85'
+                              : 'bg-[#0D1117] border-slate-800/50 opacity-85 hover:border-slate-700'
                           }`}
                         >
                           <div className="flex items-center gap-2">
@@ -756,7 +776,8 @@ export default function App() {
             {tournamentData?.fighters?.map((fighter) => (
               <div
                 key={fighter.id}
-                className="bg-[#161B26] border border-slate-800 rounded-xl p-4 flex flex-col justify-between shadow-lg"
+                onClick={() => setSelectedFighter(fighter)}
+                className="bg-[#161B26] border border-slate-800 rounded-xl p-4 flex flex-col justify-between shadow-lg cursor-pointer hover:border-orange-500/50 hover:scale-[1.02] transition-all"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
@@ -797,6 +818,105 @@ export default function App() {
           </div>
         )}
       </main>
+
+      {/* FIGHTER CARD SPLASH MODAL */}
+      {selectedFighter && (
+        <div
+          onClick={() => setSelectedFighter(null)}
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 transition-all"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-gradient-to-b from-[#1C1626] via-[#161B26] to-[#0D1117] border-2 border-orange-500/80 rounded-3xl max-w-md w-full p-6 shadow-2xl relative overflow-hidden text-slate-100 animate-in fade-in zoom-in duration-200"
+          >
+            {/* Top Close Button */}
+            <button
+              onClick={() => setSelectedFighter(null)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#0D1117]/80 border border-slate-700 text-slate-400 hover:text-white hover:bg-orange-500 hover:border-orange-500 flex items-center justify-center font-bold text-sm transition-all"
+            >
+              ✕
+            </button>
+
+            {/* Fighter Header & Avatar */}
+            <div className="flex flex-col items-center text-center space-y-3 pt-2">
+              <div className="w-20 h-20 rounded-2xl bg-orange-500/10 border-2 border-orange-500/40 flex items-center justify-center text-5xl shadow-lg shadow-orange-950/50">
+                {selectedFighter.image || '❓'}
+              </div>
+
+              <div>
+                <span className="text-[10px] font-mono uppercase font-bold text-orange-400 bg-orange-950/40 border border-orange-900/40 px-2.5 py-0.5 rounded-full">
+                  {selectedFighter.status || 'Contestant'}
+                </span>
+                <h2 className="text-2xl font-black uppercase tracking-wide text-slate-100 mt-1">
+                  {selectedFighter.name}
+                </h2>
+                {selectedFighter.seed && (
+                  <p className="text-xs text-purple-300 font-semibold mt-0.5">
+                    Tournament Seed #{selectedFighter.seed}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Live Vote Banner if available */}
+            {selectedFighter.currentScore !== undefined && (
+              <div className="mt-4 bg-[#0D1117]/80 border border-orange-500/30 rounded-xl p-3 flex items-center justify-between text-xs">
+                <span className="text-slate-400 font-medium">Active Round Score:</span>
+                <span className="font-mono font-extrabold text-orange-400 text-sm">
+                  {selectedFighter.currentScore} Votes
+                </span>
+              </div>
+            )}
+
+            {/* Bio / Description */}
+            <div className="mt-4 space-y-1.5">
+              <h3 className="text-xs font-bold text-purple-300 uppercase tracking-wider">
+                Fighter Bio
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed bg-[#0D1117]/60 border border-slate-800/80 rounded-xl p-3">
+                {selectedFighter.bio || selectedFighter.description || 'No detailed lore available for this combatant.'}
+              </p>
+            </div>
+
+            {/* Traits & Attributes */}
+            {selectedFighter.attributes && selectedFighter.attributes.length > 0 && (
+              <div className="mt-4 space-y-1.5">
+                <h3 className="text-xs font-bold text-purple-300 uppercase tracking-wider">
+                  Special Traits & Weapons
+                </h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedFighter.attributes.map((attr, idx) => (
+                    <span
+                      key={idx}
+                      className="text-[10px] bg-purple-950/40 text-purple-200 border border-purple-500/30 px-2.5 py-1 rounded-lg font-medium"
+                    >
+                      ⚡ {attr}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="mt-6 flex gap-3">
+              <a
+                href={votingUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs py-2.5 rounded-xl text-center transition-all shadow-md shadow-orange-500/20 active:scale-95"
+              >
+                Vote for {selectedFighter.name} ↗
+              </a>
+              <button
+                onClick={() => setSelectedFighter(null)}
+                className="px-4 bg-[#0D1117] hover:bg-slate-800 border border-slate-700 text-slate-300 font-bold text-xs py-2.5 rounded-xl transition-all"
+              >
+                Close Card
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
