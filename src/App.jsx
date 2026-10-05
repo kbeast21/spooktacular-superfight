@@ -14,12 +14,12 @@ export default function App() {
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
-  // Countdown Timer State (Default Deadline: Midnight Halloween 2026)
+  // Countdown Timer State
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
-  // Target voting deadline (Oct 31, 2026 23:59:59)
+  // Target voting deadline (Oct 20, 2026 23:59:59)
   const votingDeadline = useMemo(() => {
-    return new Date(tournamentData?.roundDeadline || '2026-10-31T23:59:59').getTime();
+    return new Date(tournamentData?.roundDeadline || '2026-10-20T23:59:59').getTime();
   }, []);
 
   // Live Countdown Effect
@@ -148,7 +148,7 @@ export default function App() {
     {
       id: 'sweet-16',
       name: 'SWEET SIXTEEN',
-      date: 'Oct 16 – Oct 21',
+      date: 'Oct 16 – Oct 20',
       status: 'active',
       matchups: activeMatchups,
     },
@@ -215,7 +215,7 @@ export default function App() {
           <div className="flex items-center gap-2 bg-[#191F2E] border border-purple-500/30 text-purple-300 text-xs px-3.5 py-2 rounded-lg font-medium">
             <span>📅</span>
             <span>
-              Active Round: <strong className="text-purple-200">{activeRoundName}</strong>
+              Active Round: <strong className="text-purple-200">{activeRoundName}</strong> (Oct 16–20)
             </span>
           </div>
           <a
@@ -229,11 +229,11 @@ export default function App() {
         </div>
       </header>
 
-      {/* ALERT BANNER: COUNTDOWN TIMER */}
+      {/* ALERT BANNER: COUNTDOWN TIMER FOR OCT 16-20 SESSION */}
       <div className="bg-[#2A1508] border-b border-orange-900/40 text-orange-400 text-xs py-2.5 px-4 text-center font-medium flex flex-wrap items-center justify-center gap-2 sm:gap-3">
         <span className="text-sm">⏳</span>
         <span>
-          <strong>{activeRoundName}</strong> Voting Session Closes In:
+          <strong>{activeRoundName}</strong> (Oct 16–20) Voting Closes In:
         </span>
         <div className="flex items-center gap-1 font-mono font-bold text-orange-300 bg-black/40 px-2.5 py-1 rounded-md border border-orange-500/30 text-xs">
           <span>{String(timeLeft.days).padStart(2, '0')}d</span>:
@@ -911,50 +911,4 @@ export default function App() {
               <h3 className="text-xs font-bold text-purple-300 uppercase tracking-wider">
                 Fighter Bio
               </h3>
-              <p className="text-xs text-slate-300 leading-relaxed bg-[#0D1117]/60 border border-slate-800/80 rounded-xl p-3">
-                {selectedFighter.bio || selectedFighter.description || 'No detailed lore available for this combatant.'}
-              </p>
-            </div>
-
-            {/* Traits & Attributes */}
-            {selectedFighter.attributes && selectedFighter.attributes.length > 0 && (
-              <div className="mt-4 space-y-1.5">
-                <h3 className="text-xs font-bold text-purple-300 uppercase tracking-wider">
-                  Special Traits & Weapons
-                </h3>
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedFighter.attributes.map((attr, idx) => (
-                    <span
-                      key={idx}
-                      className="text-[10px] bg-purple-950/40 text-purple-200 border border-purple-500/30 px-2.5 py-1 rounded-lg font-medium"
-                    >
-                      ⚡ {attr}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="mt-6 flex gap-3">
-              <a
-                href={votingUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs py-2.5 rounded-xl text-center transition-all shadow-md shadow-orange-500/20 active:scale-95"
-              >
-                Vote for {selectedFighter.name} ↗
-              </a>
-              <button
-                onClick={() => setSelectedFighter(null)}
-                className="px-4 bg-[#0D1117] hover:bg-slate-800 border border-slate-700 text-slate-300 font-bold text-xs py-2.5 rounded-xl transition-all"
-              >
-                Close Card
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+              <p className
