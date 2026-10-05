@@ -229,6 +229,9 @@ export default function App() {
                 key={boon.id}
                 className="bg-[#161B26] border border-slate-800/90 rounded-2xl p-5 shadow-xl flex flex-col justify-between space-y-4"
               >
+<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfkJAGBHd2TeGlvY1n09HUYRFp6Ai3loXUJXBfTrFxu6V20ow/viewform?embedded=true" width="640" height="1627" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
+
+                
                 <div className="flex items-center justify-between">
                   <span className="text-4xl p-2 bg-[#0D1117] border border-slate-800 rounded-xl">
                     {boon.icon || '✨'}
@@ -264,8 +267,6 @@ export default function App() {
                 onClick={() => setSelectedFighter(fighter)}
                 className="bg-[#161B26] border border-slate-800 rounded-xl p-4 flex flex-col justify-between shadow-lg cursor-pointer hover:border-orange-500/50 transition-all"
               >
-                        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfVpLiNc-7m6QDaxDEyMhkCHmYHMCksjYtvZGvGQoaQH8blsw/viewform?embedded=true" width="700" height="520" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
-
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-3xl">{fighter.image || '❓'}</span>
