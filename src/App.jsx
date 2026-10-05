@@ -5,6 +5,7 @@ const CONFIG_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2POP
 const BOONS_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2POPXiw_0BcgW0X60GGUk0HY8OQK-sI8LpUKPrCm7hzkgRl80oxulZdvQ9g25jZsAIKioAm08FL1g/pub?gid=388339265&single=true&output=csv";
 const FIGHTERS_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2POPXiw_0BcgW0X60GGUk0HY8OQK-sI8LpUKPrCm7hzkgRl80oxulZdvQ9g25jZsAIKioAm08FL1g/pub?gid=1937729440&single=true&output=csv";
 const SCORES_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2POPXiw_0BcgW0X60GGUk0HY8OQK-sI8LpUKPrCm7hzkgRl80oxulZdvQ9g25jZsAIKioAm08FL1g/pub?gid=1873253112&single=true&output=csv";
+const MATCHUPS_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2POPXiw_0BcgW0X60GGUk0HY8OQK-sI8LpUKPrCm7hzkgRl80oxulZdvQ9g25jZsAIKioAm08FL1g/pub?gid=2016168137&single=true&output=csv";
 
 // Simple CSV parser helper
 function parseCSV(text) {
@@ -26,6 +27,7 @@ export default function App() {
   const [config, setConfig] = useState({});
   const [boons, setBoons] = useState([]);
   const [fighters, setFighters] = useState([]);
+  const [matchups, setMatchups] = useState([]);
   const [liveScores, setLiveScores] = useState({});
   const [loading, setLoading] = useState(true);
 
@@ -45,6 +47,7 @@ export default function App() {
           fetch(CONFIG_SHEET_CSV).then((r) => r.text()),
           fetch(BOONS_SHEET_CSV).then((r) => r.text()),
           fetch(FIGHTERS_SHEET_CSV).then((r) => r.text()),
+          fetch(MATCHUPS_SHEET_CSV).then((r) => r.text()),
           fetch(SCORES_SHEET_CSV).then((r) => r.text()),
         ]);
 
@@ -69,6 +72,9 @@ export default function App() {
         }));
         setFighters(fightersData);
 
+        // Parse Matchups
+        setMatchups(parseCSV(matchupsRes));
+        
         // Parse Live Scores
         const scoreRows = parseCSV(scoresRes);
         const parsedScores = {};
@@ -87,6 +93,39 @@ export default function App() {
 
     loadAllSheetData();
   }, []);
+  
+  // Helper map to look up fighters by ID
+  const fightersById = useMemo(() => {
+    const map = {};
+    fighters.forEach((f) => {
+      map[f.id.toLowerCase()] = f;
+    });
+    return map;
+  }, [fighters]);
+  
+  // Compute active round matchups with live lead calculations
+  const activeMatchups = useMemo(() => {
+    // Filter matchups for the active round (e.g., "sweet-16")
+    const currentRoundId = (config.activeRound || 'sweet-16').toLowerCase().replace(/\s+/g, '-');
+    const roundMatchups = matchups.filter(
+      (m) => (m.roundId || '').toLowerCase() === currentRoundId
+    );
+  
+    return roundMatchups.map((m) => {
+      const fA = fightersById[m.fighterAId?.toLowerCase()] || { name: m.fighterAId, image: '❓', seed: '?' };
+      const fB = fightersById[m.fighterBId?.toLowerCase()] || { name: m.fighterBId, image: '❓', seed: '?' };
+  
+      const scoreA = liveScores[m.fighterAId?.toLowerCase()] ?? 0;
+      const scoreB = liveScores[m.fighterBId?.toLowerCase()] ?? 0;
+  
+      return {
+        ...m,
+        isTied: scoreA === scoreB,
+        fighter1: { ...fA, currentScore: scoreA, isLeading: scoreA > scoreB },
+        fighter2: { ...fB, currentScore: scoreB, isLeading: scoreB > scoreA },
+      };
+    });
+  }, [matchups, fightersById, liveScores, config.activeRound]);
 
   // Target voting start date from dynamic config
   const votingStartDate = useMemo(() => {
