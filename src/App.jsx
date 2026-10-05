@@ -2,13 +2,14 @@ import React, { useState, useEffect, useMemo } from 'react';
 import tournamentData from './data/tournament.json';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('grid'); // Default to current round grid landing page
+  const [activeTab, setActiveTab] = useState('grid');
   const [expandedMatch, setExpandedMatch] = useState(null);
   const [liveScores, setLiveScores] = useState({});
   const [loadingScores, setLoadingScores] = useState(true);
   
   // Carousel state for auto-rotating banner
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
   // Fetch Live Scores from Google Sheet CSV
   useEffect(() => {
@@ -40,7 +41,7 @@ export default function App() {
         setLiveScores(parsedScores);
       } catch (err) {
         console.error('Failed to load live scores from Google Sheets:', err);
-      } finally {
+      } font-medium {
         setLoadingScores(false);
       }
     }
@@ -86,16 +87,16 @@ export default function App() {
     });
   }, [fightersById, liveScores]);
 
-  // Auto-rotate banner every 14 seconds (6000ms)
+  // Auto-rotate banner every 14 seconds (14000ms), pausing on hover or manual interaction
   useEffect(() => {
-    if (activeMatchups.length === 0) return;
+    if (activeMatchups.length === 0 || isPaused) return;
 
     const timer = setInterval(() => {
       setCurrentMatchIndex((prevIndex) => (prevIndex + 1) % activeMatchups.length);
     }, 14000);
 
     return () => clearInterval(timer);
-  }, [activeMatchups.length]);
+  }, [activeMatchups.length, isPaused]);
 
   const rounds = [
     {
@@ -132,11 +133,18 @@ export default function App() {
   const activeBannerMatch = activeMatchups[currentMatchIndex] || activeMatchups[0];
 
   const handlePrevBanner = () => {
+    setIsPaused(true);
     setCurrentMatchIndex((prev) => (prev - 1 + activeMatchups.length) % activeMatchups.length);
   };
 
   const handleNextBanner = () => {
+    setIsPaused(true);
     setCurrentMatchIndex((prev) => (prev + 1) % activeMatchups.length);
+  };
+
+  const handleSelectDot = (idx) => {
+    setIsPaused(true);
+    setCurrentMatchIndex(idx);
   };
 
   return (
@@ -244,14 +252,25 @@ export default function App() {
         {activeTab === 'grid' && (
           <div className="max-w-7xl mx-auto space-y-8">
             
-            {/* ROTATING MATCHUP BANNER */}
+            {/* ROTATING MATCHUP BANNER (14s Delay + Pause on Interaction/Hover) */}
             {activeBannerMatch && (
-              <div className="bg-gradient-to-r from-[#1A0F26] via-[#161B26] to-[#261208] border border-orange-500/40 rounded-2xl p-6 shadow-2xl relative overflow-hidden transition-all duration-500">
+              <div
+                onMouseEnter={() => setIsPaused(true)}
+                onMouseLeave={() => setIsPaused(false)}
+                className="bg-gradient-to-r from-[#1A0F26] via-[#161B26] to-[#261208] border border-orange-500/40 rounded-2xl p-6 shadow-2xl relative overflow-hidden transition-all duration-500"
+              >
                 
-                {/* Top Badge & Controls */}
+                {/* Top Badge & Pause Status Controls */}
                 <div className="flex items-center justify-between mb-2">
-                  <div className="bg-orange-500 text-black font-black text-[10px] tracking-widest px-3 py-1 rounded-full uppercase">
-                    SPOTLIGHT BATTLE ({currentMatchIndex + 1}/{activeMatchups.length})
+                  <div className="flex items-center gap-2">
+                    <span className="bg-orange-500 text-black font-black text-[10px] tracking-widest px-3 py-1 rounded-full uppercase">
+                      SPOTLIGHT BATTLE ({currentMatchIndex + 1}/{activeMatchups.length})
+                    </span>
+                    {isPaused && (
+                      <span className="text-[9px] bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-full font-mono uppercase font-semibold">
+                        ⏸ PAUSED
+                      </span>
+                    )}
                   </div>
                   
                   {/* Manual Nav Controls */}
@@ -352,7 +371,7 @@ export default function App() {
                     {activeMatchups.map((_, idx) => (
                       <button
                         key={idx}
-                        onClick={() => setCurrentMatchIndex(idx)}
+                        onClick={() => handleSelectDot(idx)}
                         className={`h-1.5 rounded-full transition-all ${
                           idx === currentMatchIndex ? 'w-5 bg-orange-500' : 'w-1.5 bg-slate-700 hover:bg-slate-500'
                         }`}
