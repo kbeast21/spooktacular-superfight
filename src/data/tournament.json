@@ -54,5 +54,52 @@
     { "id": "borg", "name": "A Borg", "status": "Bench", "seed": null, "votes": 1, "bio": "Cybernetic organism that adapts to all enemy attacks.", "attributes": ["Adaptive Shielding", "Assimilation Tubules"], "image": "🤖" },
     { "id": "chupacabra", "name": "A Chupacabra", "status": "Bench", "seed": null, "votes": 1, "bio": "Spined cryptid that drains the vitality of its prey.", "attributes": ["Spike Launch", "Vampiric Bite"], "image": "🦎" },
     { "id": "shadow_creature", "name": "A Shadow Creature", "status": "Bench", "seed": null, "votes": 1, "bio": "Amorphous dark entity lurking in unlit corners.", "attributes": ["Shadow Meld", "Terror Inducement"], "image": "👤" }
+  ],
+  "boons": [
+    {
+      "id": "boon-1",
+      "name": "Pumpkin Shield",
+      "icon": "🎃",
+      "rarity": "Common",
+      "type": "Defensive Perk",
+      "effect": "+10% bonus vote shield when trailing by more than 50 votes in any 24-hour period.",
+      "target": "Single Contestant"
+    },
+    {
+      "id": "boon-2",
+      "name": "Spectral Frenzy",
+      "icon": "👻",
+      "rarity": "Rare",
+      "type": "Offensive Boon",
+      "effect": "Doubles vote weight during the final 3 hours of the Sweet Sixteen round window.",
+      "target": "All Underdog Seeds"
+    },
+    {
+      "id": "boon-3",
+      "name": "Shadow Cloak",
+      "icon": "🦇",
+      "rarity": "Epic",
+      "type": "Tactical Boon",
+      "effect": "Conceals live vote counts on the main scoreboard for the last 60 minutes of voting.",
+      "target": "Active Matchups"
+    },
+    {
+      "id": "boon-4",
+      "name": "Witch’s Brew Surge",
+      "icon": "🧪",
+      "rarity": "Legendary",
+      "type": "Global Modifier",
+      "effect": "Grants 15 bonus seed points to any contestant fighting in their preferred arena.",
+      "target": "Arena Favorites"
+    },
+    {
+      "id": "boon-5",
+      "name": "Necromancer’s Second Chance",
+      "icon": "☠️",
+      "rarity": "Mythic",
+      "type": "Bracket Perk",
+      "effect": "Top voted eliminated contestant from Sweet Sixteen gets entered into a Wildcard Revival match.",
+      "target": "Eliminated Fighters"
+    }
   ]
 }
