@@ -86,13 +86,13 @@ export default function App() {
     });
   }, [fightersById, liveScores]);
 
-  // Auto-rotate banner every 10 seconds (6000ms)
+  // Auto-rotate banner every 14 seconds (6000ms)
   useEffect(() => {
     if (activeMatchups.length === 0) return;
 
     const timer = setInterval(() => {
       setCurrentMatchIndex((prevIndex) => (prevIndex + 1) % activeMatchups.length);
-    }, 10000);
+    }, 14000);
 
     return () => clearInterval(timer);
   }, [activeMatchups.length]);
