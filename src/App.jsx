@@ -289,6 +289,29 @@ export default function App() {
                   <span className="bg-orange-500 text-black font-black text-[10px] tracking-widest px-3 py-1 rounded-full uppercase">
                     SPOTLIGHT BATTLE ({currentMatchIndex + 1}/{activeMatchups.length})
                   </span>
+
+                  <div className="flex items-center gap-1.5 overflow-x-auto max-w-[50%] py-1">
+        {activeMatchups.map((m, idx) => (
+          <button
+            key={m.id}
+            onClick={() => setCurrentMatchIndex(idx)}
+            className={`w-6 h-6 rounded-lg text-[10px] font-mono font-bold transition-all border ${
+              idx === currentMatchIndex
+                ? 'bg-orange-500 text-black border-orange-400 scale-110 shadow-md shadow-orange-500/30'
+                : 'bg-[#0D1117] text-slate-400 border-slate-800 hover:border-slate-600 hover:text-slate-200'
+            }`}
+            title={`Jump to Match ${m.id?.toUpperCase()}`}
+          >
+            {idx + 1}
+          </button>
+        ))}
+      </div>
+
+
+
+
+
+                  
                 </div>
                 <div className="text-center mb-4">
                   <span className="text-xs font-bold text-orange-400 tracking-widest uppercase">
