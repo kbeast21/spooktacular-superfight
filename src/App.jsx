@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
 // Insert your published Google Sheet CSV URLs here
-const CONFIG_SHEET_CSV = "YOUR_PUBLISHED_CONFIG_CSV_URL";
-const BOONS_SHEET_CSV = "YOUR_PUBLISHED_BOONS_CSV_URL";
-const FIGHTERS_SHEET_CSV = "YOUR_PUBLISHED_FIGHTERS_CSV_URL";
-const SCORES_SHEET_CSV = "YOUR_PUBLISHED_SCORES_CSV_URL";
+const CONFIG_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2POPXiw_0BcgW0X60GGUk0HY8OQK-sI8LpUKPrCm7hzkgRl80oxulZdvQ9g25jZsAIKioAm08FL1g/pub?gid=0&single=true&output=csv";
+const BOONS_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2POPXiw_0BcgW0X60GGUk0HY8OQK-sI8LpUKPrCm7hzkgRl80oxulZdvQ9g25jZsAIKioAm08FL1g/pub?gid=388339265&single=true&output=csv";
+const FIGHTERS_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2POPXiw_0BcgW0X60GGUk0HY8OQK-sI8LpUKPrCm7hzkgRl80oxulZdvQ9g25jZsAIKioAm08FL1g/pub?gid=1937729440&single=true&output=csv";
+const SCORES_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2POPXiw_0BcgW0X60GGUk0HY8OQK-sI8LpUKPrCm7hzkgRl80oxulZdvQ9g25jZsAIKioAm08FL1g/pub?gid=1873253112&single=true&output=csv";
 
 // Simple CSV parser helper
 function parseCSV(text) {
