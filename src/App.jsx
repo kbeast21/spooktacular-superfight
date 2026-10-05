@@ -172,6 +172,55 @@ export default function App() {
     },
   ];
 
+  // Tournament Boons Data
+  const boonsList = [
+    {
+      id: 'boon-1',
+      name: 'Pumpkin Shield',
+      icon: '🎃',
+      rarity: 'Common',
+      type: 'Defensive Perk',
+      effect: '+10% bonus vote shield when trailing by more than 50 votes in any 24-hour period.',
+      target: 'Single Contestant',
+    },
+    {
+      id: 'boon-2',
+      name: 'Spectral Frenzy',
+      icon: '👻',
+      rarity: 'Rare',
+      type: 'Offensive Boon',
+      effect: 'Doubles vote weight during the final 3 hours of the Sweet Sixteen round window.',
+      target: 'All Underdog Seeds',
+    },
+    {
+      id: 'boon-3',
+      name: 'Shadow Cloak',
+      icon: '🦇',
+      rarity: 'Epic',
+      type: 'Tactical Boon',
+      effect: 'Conceals live vote counts on the main scoreboard for the last 60 minutes of voting.',
+      target: 'Active Matchups',
+    },
+    {
+      id: 'boon-4',
+      name: 'Witch’s Brew Surge',
+      icon: '🧪',
+      rarity: 'Legendary',
+      type: 'Global Modifier',
+      effect: 'Grants 15 bonus seed points to any contestant fighting in their preferred arena.',
+      target: 'Arena Favorites',
+    },
+    {
+      id: 'boon-5',
+      name: 'Necromancer’s Second Chance',
+      icon: '☠️',
+      rarity: 'Mythic',
+      type: 'Bracket Perk',
+      effect: 'Top voted eliminated contestant from Sweet Sixteen gets entered into a Wildcard Revival match.',
+      target: 'Eliminated Fighters',
+    },
+  ];
+
   const votingUrl = tournamentData?.activeVotingUrl || '#';
   const activeRoundName = tournamentData?.activeRound || 'Sweet Sixteen';
 
@@ -252,8 +301,8 @@ export default function App() {
       </div>
 
       {/* NAVIGATION TABS */}
-      <nav className="flex justify-center border-b border-slate-800/80 bg-[#0B0E17] pt-4">
-        <div className="flex gap-6 sm:gap-8 text-sm font-semibold">
+      <nav className="flex justify-center border-b border-slate-800/80 bg-[#0B0E17] pt-4 overflow-x-auto">
+        <div className="flex gap-6 sm:gap-8 text-sm font-semibold whitespace-nowrap px-4">
           <button
             onClick={() => setActiveTab('grid')}
             className={`pb-3 transition-colors ${
@@ -273,6 +322,16 @@ export default function App() {
             }`}
           >
             Interactive Bracket
+          </button>
+          <button
+            onClick={() => setActiveTab('boons')}
+            className={`pb-3 transition-colors ${
+              activeTab === 'boons'
+                ? 'border-b-2 border-orange-500 text-orange-500 font-bold'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            🧙‍♂️ Boons & Perks
           </button>
           <button
             onClick={() => setActiveTab('vault')}
@@ -808,6 +867,64 @@ export default function App() {
           </div>
         )}
 
+        {/* BOONS & PERKS TAB */}
+        {activeTab === 'boons' && (
+          <div className="max-w-7xl mx-auto space-y-6">
+            <div className="border-b border-slate-800 pb-3">
+              <h2 className="text-xl font-black text-orange-500 tracking-wide uppercase">
+                🧙‍♂️️ Tournament Boons & Perks
+              </h2>
+              <p className="text-xs text-slate-400 font-medium">
+                Active modifiers, voter power-ups, and contestant advantages for the Superfight.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {boonsList.map((boon) => (
+                <div
+                  key={boon.id}
+                  className="bg-[#161B26] border border-slate-800/90 rounded-2xl p-5 shadow-xl flex flex-col justify-between hover:border-orange-500/50 transition-all space-y-4"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-4xl p-2 bg-[#0D1117] border border-slate-800 rounded-xl">
+                        {boon.icon}
+                      </span>
+                      <span
+                        className={`text-[10px] font-bold font-mono px-2.5 py-1 rounded-full uppercase border ${
+                          boon.rarity === 'Legendary' || boon.rarity === 'Mythic'
+                            ? 'bg-orange-950/50 text-orange-400 border-orange-500/50'
+                            : boon.rarity === 'Epic'
+                            ? 'bg-purple-950/50 text-purple-300 border-purple-500/50'
+                            : 'bg-slate-800 text-slate-300 border-slate-700'
+                        }`}
+                      >
+                        {boon.rarity}
+                      </span>
+                    </div>
+
+                    <div>
+                      <h3 className="text-base font-bold text-slate-100">{boon.name}</h3>
+                      <p className="text-[11px] font-mono font-semibold text-purple-400 mt-0.5">
+                        {boon.type}
+                      </p>
+                    </div>
+
+                    <p className="text-xs text-slate-300 leading-relaxed bg-[#0D1117]/60 border border-slate-800/80 rounded-xl p-3">
+                      {boon.effect}
+                    </p>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] font-medium text-slate-400">
+                    <span>Applies To:</span>
+                    <span className="text-orange-400 font-bold">{boon.target}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* VAULT TAB */}
         {activeTab === 'vault' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-7xl mx-auto">
@@ -898,63 +1015,4 @@ export default function App() {
 
             {/* Live Vote Banner if available */}
             {selectedFighter.currentScore !== undefined && (
-              <div className="mt-4 bg-[#0D1117]/80 border border-orange-500/30 rounded-xl p-3 flex items-center justify-between text-xs">
-                <span className="text-slate-400 font-medium">Active Round Score:</span>
-                <span className="font-mono font-extrabold text-orange-400 text-sm">
-                  {selectedFighter.currentScore} Votes
-                </span>
-              </div>
-            )}
-
-            {/* Bio / Description */}
-            <div className="mt-4 space-y-1.5">
-              <h3 className="text-xs font-bold text-purple-300 uppercase tracking-wider">
-                Fighter Bio
-              </h3>
-              <p className="text-xs text-slate-300 leading-relaxed bg-[#0D1117]/60 border border-slate-800/80 rounded-xl p-3">
-                {selectedFighter.bio || selectedFighter.description || 'No detailed lore available for this combatant.'}
-              </p>
-            </div>
-
-            {/* Traits & Attributes */}
-            {selectedFighter.attributes && selectedFighter.attributes.length > 0 && (
-              <div className="mt-4 space-y-1.5">
-                <h3 className="text-xs font-bold text-purple-300 uppercase tracking-wider">
-                  Special Traits & Weapons
-                </h3>
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedFighter.attributes.map((attr, idx) => (
-                    <span
-                      key={idx}
-                      className="text-[10px] bg-purple-950/40 text-purple-200 border border-purple-500/30 px-2.5 py-1 rounded-lg font-medium"
-                    >
-                      ⚡ {attr}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="mt-6 flex gap-3">
-              <a
-                href={votingUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs py-2.5 rounded-xl text-center transition-all shadow-md shadow-orange-500/20 active:scale-95"
-              >
-                Vote for {selectedFighter.name} ↗
-              </a>
-              <button
-                onClick={() => setSelectedFighter(null)}
-                className="px-4 bg-[#0D1117] hover:bg-slate-800 border border-slate-700 text-slate-300 font-bold text-xs py-2.5 rounded-xl transition-all"
-              >
-                Close Card
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+              <div className="mt-4 bg
