@@ -4,8 +4,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 const CONFIG_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2POPXiw_0BcgW0X60GGUk0HY8OQK-sI8LpUKPrCm7hzkgRl80oxulZdvQ9g25jZsAIKioAm08FL1g/pub?gid=0&single=true&output=csv";
 const BOONS_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2POPXiw_0BcgW0X60GGUk0HY8OQK-sI8LpUKPrCm7hzkgRl80oxulZdvQ9g25jZsAIKioAm08FL1g/pub?gid=388339265&single=true&output=csv";
 const FIGHTERS_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2POPXiw_0BcgW0X60GGUk0HY8OQK-sI8LpUKPrCm7hzkgRl80oxulZdvQ9g25jZsAIKioAm08FL1g/pub?gid=1937729440&single=true&output=csv";
-const SCORES_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2POPXiw_0BcgW0X60GGUk0HY8OQK-sI8LpUKPrCm7hzkgRl80oxulZdvQ9g25jZsAIKioAm08FL1g/pub?gid=1873253112&single=true&output=csv";
 const MATCHUPS_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2POPXiw_0BcgW0X60GGUk0HY8OQK-sI8LpUKPrCm7hzkgRl80oxulZdvQ9g25jZsAIKioAm08FL1g/pub?gid=2016168137&single=true&output=csv";
+const SCORES_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2POPXiw_0BcgW0X60GGUk0HY8OQK-sI8LpUKPrCm7hzkgRl80oxulZdvQ9g25jZsAIKioAm08FL1g/pub?gid=1873253112&single=true&output=csv";
 
 // Simple CSV parser helper
 function parseCSV(text) {
@@ -42,8 +42,8 @@ export default function App() {
       try {
         setLoading(true);
 
-        // Fetch Config, Boons, Fighters, and Scores in parallel
-        const [configRes, boonsRes, fightersRes, scoresRes] = await Promise.all([
+        // Fetch Config, Boons, Fighters, Matchups, and Scores in parallel (all 5 included)
+        const [configRes, boonsRes, fightersRes, matchupsRes, scoresRes] = await Promise.all([
           fetch(CONFIG_SHEET_CSV).then((r) => r.text()),
           fetch(BOONS_SHEET_CSV).then((r) => r.text()),
           fetch(FIGHTERS_SHEET_CSV).then((r) => r.text()),
@@ -62,8 +62,7 @@ export default function App() {
         setConfig(parsedConfig);
 
         // Parse Boons
-        const boonsData = parseCSV(boonsRes);
-        setBoons(boonsData);
+        setBoons(parseCSV(boonsRes));
 
         // Parse Fighters
         const fightersData = parseCSV(fightersRes).map((f) => ({
@@ -98,17 +97,18 @@ export default function App() {
   const fightersById = useMemo(() => {
     const map = {};
     fighters.forEach((f) => {
-      map[f.id.toLowerCase()] = f;
+      if (f.id) {
+        map[f.id.toLowerCase()] = f;
+      }
     });
     return map;
   }, [fighters]);
   
   // Compute active round matchups with live lead calculations
   const activeMatchups = useMemo(() => {
-    // Filter matchups for the active round (e.g., "sweet-16")
-    const currentRoundId = (config.activeRound || 'sweet-16').toLowerCase().replace(/\s+/g, '-');
+    const currentRoundId = (config.activeRound || 'sweet-sixteen').toLowerCase().replace(/\s+/g, '-');
     const roundMatchups = matchups.filter(
-      (m) => (m.roundId || '').toLowerCase() === currentRoundId
+      (m) => (m.roundId || '').toLowerCase().replace(/\s+/g, '-') === currentRoundId
     );
   
     return roundMatchups.map((m) => {
@@ -126,6 +126,15 @@ export default function App() {
       };
     });
   }, [matchups, fightersById, liveScores, config.activeRound]);
+
+  // Auto-rotate banner every 8 seconds
+  useEffect(() => {
+    if (activeMatchups.length === 0 || isPaused) return;
+    const timer = setInterval(() => {
+      setCurrentMatchIndex((prev) => (prev + 1) % activeMatchups.length);
+    }, 8000);
+    return () => clearInterval(timer);
+  }, [activeMatchups.length, isPaused]);
 
   // Target voting start date from dynamic config
   const votingStartDate = useMemo(() => {
@@ -164,6 +173,10 @@ export default function App() {
     );
   }
 
+  const activeRoundName = config.activeRound || 'Sweet Sixteen';
+  const votingUrl = config.activeVotingUrl || '#';
+  const activeBannerMatch = activeMatchups[currentMatchIndex] || activeMatchups[0];
+
   return (
     <div className="min-h-screen bg-[#0B0E17] text-slate-100 font-sans flex flex-col relative">
       {/* HEADER */}
@@ -186,11 +199,11 @@ export default function App() {
           <div className="flex items-center gap-2 bg-[#191F2E] border border-purple-500/30 text-purple-300 text-xs px-3.5 py-2 rounded-lg font-medium">
             <span>📅</span>
             <span>
-              Active Round: <strong className="text-purple-200">{config.activeRound || 'Sweet Sixteen'}</strong>
+              Active Round: <strong className="text-purple-200">{activeRoundName}</strong>
             </span>
           </div>
           <a
-            href={config.activeVotingUrl || '#'}
+            href={votingUrl}
             target="_blank"
             rel="noreferrer"
             className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all shadow-md shadow-orange-500/20 active:scale-95"
@@ -204,7 +217,7 @@ export default function App() {
       <div className="bg-[#2A1508] border-b border-orange-900/40 text-orange-400 text-xs py-2.5 px-4 text-center font-medium flex flex-wrap items-center justify-center gap-2 sm:gap-3">
         <span className="text-sm">⏳</span>
         <span>
-          <strong>{config.activeRound || 'Sweet Sixteen'}</strong> Voting Session Opens In:
+          <strong>{activeRoundName}</strong> Voting Session Opens In:
         </span>
         <div className="flex items-center gap-1 font-mono font-bold text-orange-300 bg-black/40 px-2.5 py-1 rounded-md border border-orange-500/30 text-xs">
           <span>{String(timeLeft.days).padStart(2, '0')}d</span>:
@@ -213,7 +226,7 @@ export default function App() {
           <span>{String(timeLeft.seconds).padStart(2, '0')}s</span>
         </div>
         <a
-          href={config.activeVotingUrl || '#'}
+          href={votingUrl}
           target="_blank"
           rel="noreferrer"
           className="underline font-bold text-orange-300 hover:text-orange-200 ml-1 inline-flex items-center gap-0.5"
@@ -243,7 +256,7 @@ export default function App() {
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            🧙‍♂️️ Boons & Perks ({boons.length})
+            🧙‍♂️ Boons & Perks ({boons.length})
           </button>
           <button
             onClick={() => setActiveTab('vault')}
@@ -260,6 +273,100 @@ export default function App() {
 
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
+        {/* CURRENT ROUND GRID TAB */}
+        {activeTab === 'grid' && (
+          <div className="space-y-8">
+            {/* ROTATING SPOTLIGHT BANNER */}
+            {activeBannerMatch && (
+              <div
+                onMouseEnter={() => setIsPaused(true)}
+                onMouseLeave={() => setIsPaused(false)}
+                className="bg-gradient-to-r from-[#1A0F26] via-[#161B26] to-[#261208] border border-orange-500/40 rounded-2xl p-6 shadow-2xl relative overflow-hidden"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="bg-orange-500 text-black font-black text-[10px] tracking-widest px-3 py-1 rounded-full uppercase">
+                    SPOTLIGHT BATTLE ({currentMatchIndex + 1}/{activeMatchups.length})
+                  </span>
+                </div>
+                <div className="text-center mb-4">
+                  <span className="text-xs font-bold text-orange-400 tracking-widest uppercase">
+                    {activeRoundName} • Matchup {activeBannerMatch.id?.toUpperCase()}
+                  </span>
+                  <h2 className="text-lg sm:text-xl font-black text-slate-100 mt-0.5">
+                    {activeBannerMatch.fighter1.name} <span className="text-orange-500 font-mono">VS</span> {activeBannerMatch.fighter2.name}
+                  </h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                  <div onClick={() => setSelectedFighter(activeBannerMatch.fighter1)} className="flex items-center justify-between p-4 rounded-xl border bg-[#0D1117]/80 border-slate-800 cursor-pointer">
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">{activeBannerMatch.fighter1.image}</span>
+                      <div>
+                        <h3 className="font-bold text-slate-100 text-sm">{activeBannerMatch.fighter1.name}</h3>
+                        <p className="text-xs text-slate-400">Seed #{activeBannerMatch.fighter1.seed || '?'}</p>
+                      </div>
+                    </div>
+                    <span className="text-base font-mono font-extrabold text-orange-400">{activeBannerMatch.fighter1.currentScore} pts</span>
+                  </div>
+                  <div onClick={() => setSelectedFighter(activeBannerMatch.fighter2)} className="flex items-center justify-between p-4 rounded-xl border bg-[#0D1117]/80 border-slate-800 cursor-pointer">
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">{activeBannerMatch.fighter2.image}</span>
+                      <div>
+                        <h3 className="font-bold text-slate-100 text-sm">{activeBannerMatch.fighter2.name}</h3>
+                        <p className="text-xs text-slate-400">Seed #{activeBannerMatch.fighter2.seed || '?'}</p>
+                      </div>
+                    </div>
+                    <span className="text-base font-mono font-extrabold text-orange-400">{activeBannerMatch.fighter2.currentScore} pts</span>
+                  </div>
+                </div>
+                <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
+                  <span className="text-purple-300 font-medium">📍 Arena: {activeBannerMatch.location || 'Undisclosed Arena'}</span>
+                  <a href={votingUrl} target="_blank" rel="noreferrer" className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-1.5 rounded-lg transition-all">
+                    Cast Your Vote ↗
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {/* MATCHUPS GRID */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {activeMatchups.map((match) => (
+                <div key={match.id} className="bg-[#161B26] border border-slate-800/90 rounded-2xl p-4 shadow-xl flex flex-col justify-between space-y-3">
+                  <div className="flex items-center justify-between text-xs font-medium text-purple-400">
+                    <span className="bg-purple-950/40 border border-purple-500/30 text-purple-300 text-[10px] font-bold px-2 py-0.5 rounded font-mono uppercase">
+                      MATCH {match.id?.toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    <div onClick={() => setSelectedFighter(match.fighter1)} className="flex items-center justify-between p-3 rounded-xl border bg-[#0D1117] border-slate-800 cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{match.fighter1.image}</span>
+                        <div>
+                          <span className="text-xs font-bold text-slate-200">{match.fighter1.name}</span>
+                          <p className="text-[10px] text-slate-500">Seed #{match.fighter1.seed || '?'}</p>
+                        </div>
+                      </div>
+                      <span className="text-xs font-mono font-bold text-orange-400">{match.fighter1.currentScore} pts</span>
+                    </div>
+                    <div onClick={() => setSelectedFighter(match.fighter2)} className="flex items-center justify-between p-3 rounded-xl border bg-[#0D1117] border-slate-800 cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{match.fighter2.image}</span>
+                        <div>
+                          <span className="text-xs font-bold text-slate-200">{match.fighter2.name}</span>
+                          <p className="text-[10px] text-slate-500">Seed #{match.fighter2.seed || '?'}</p>
+                        </div>
+                      </div>
+                      <span className="text-xs font-mono font-bold text-orange-400">{match.fighter2.currentScore} pts</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center text-[11px] font-medium text-purple-300 bg-[#0D1117]/60 py-1.5 px-3 rounded-lg border border-purple-500/20">
+                    <span>📍 {match.location || 'Arena'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* BOONS TAB */}
         {activeTab === 'boons' && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -267,7 +374,7 @@ export default function App() {
               <div
                 key={boon.id}
                 className="bg-[#161B26] border border-slate-800/90 rounded-2xl p-5 shadow-xl flex flex-col justify-between space-y-4"
-              > 
+              >
                 <div className="flex items-center justify-between">
                   <span className="text-4xl p-2 bg-[#0D1117] border border-slate-800 rounded-xl">
                     {boon.icon || '✨'}
